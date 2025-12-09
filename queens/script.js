@@ -2,7 +2,8 @@
 let grid = [];
 let colorRegions = [];
 const GRID_SIZE = 8;
-const MIN_REGION_SIZE = 4;
+const NUM_REGIONS = 8;  // Must match COLORS.length
+const MIN_REGION_SIZE = 6;
 const MAX_REGION_SIZE = 10;
 const COLORS = [
     '#FFB3BA', '#FFDFBA', '#FFFFBA', '#BAFFC9',
@@ -39,13 +40,22 @@ function generateColorRegions() {
     shuffleArray(cellsToAssign);
     
     // Assign regions using flood fill to ensure connectivity
-    while (cellsToAssign.length > 0) {
+    // Create exactly NUM_REGIONS regions, each with a unique color
+    while (cellsToAssign.length > 0 && regionId < NUM_REGIONS) {
         const start = cellsToAssign.shift();
         
         if (colorRegions[start.r][start.c] !== -1) continue;
         
         // Decide region size
-        const targetSize = Math.floor(Math.random() * (MAX_REGION_SIZE - MIN_REGION_SIZE + 1)) + MIN_REGION_SIZE;
+        // For the last region, use all remaining unassigned cells
+        let targetSize;
+        if (regionId === NUM_REGIONS - 1) {
+            // Last region: assign ALL remaining unassigned cells
+            targetSize = GRID_SIZE * GRID_SIZE; // Large number to get all remaining
+        } else {
+            targetSize = Math.floor(Math.random() * (MAX_REGION_SIZE - MIN_REGION_SIZE + 1)) + MIN_REGION_SIZE;
+        }
+        
         const region = [];
         const queue = [start];
         const visited = new Set();
@@ -75,6 +85,16 @@ function generateColorRegions() {
         }
         
         regionId++;
+    }
+    
+    // Cleanup: Assign any remaining unassigned cells to the last region
+    // This handles edge cases where some cells weren't reached by flood fill
+    for (let r = 0; r < GRID_SIZE; r++) {
+        for (let c = 0; c < GRID_SIZE; c++) {
+            if (colorRegions[r][c] === -1) {
+                colorRegions[r][c] = NUM_REGIONS - 1; // Assign to last region
+            }
+        }
     }
 }
 
@@ -115,9 +135,9 @@ function renderGrid() {
             cell.dataset.col = c;
             
             // Set background color based on region
+            // Each region has a unique color (no modulo needed)
             const regionId = colorRegions[r][c];
-            const colorIndex = regionId % COLORS.length;
-            cell.style.backgroundColor = COLORS[colorIndex];
+            cell.style.backgroundColor = COLORS[regionId];
             
             // Add bold borders between different regions
             addBoldBorders(cell, r, c);

@@ -7,18 +7,23 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
-        <h1>Queens Puzzle</h1>
-        <p class="instructions">Place queens (♛) so there is exactly one in each row, column, and color region. Queens cannot touch, even diagonally. Click: empty → X → ♛ → empty</p>
-        
-        <div id="queens-grid"></div>
-        
-        <div class="controls">
-            <button id="reset-btn">Reset Puzzle</button>
-            <button id="new-game-btn">New Game</button>
+    <div class="iphone-frame">
+        <div class="iphone-notch"></div>
+        <div class="iphone-screen">
+            <div class="container">
+                <h1>Queens Puzzle</h1>
+                <p class="instructions">Place queens (♛) so there is exactly one in each row, column, and color region. Queens cannot touch, even diagonally. Click: empty → X → ♛ → empty</p>
+                
+                <div id="queens-grid"></div>
+                
+                <div class="controls">
+                    <button id="reset-btn">Reset Puzzle</button>
+                    <button id="new-game-btn">New Game</button>
+                </div>
+                
+                <div id="message" class="message"></div>
+            </div>
         </div>
-        
-        <div id="message" class="message"></div>
     </div>
     
     <script src="script.js"></script>
