@@ -135,12 +135,27 @@ function checkAnswer() {
             revealedCount++;
             renderCards();
             showMessage(`❌ Incorrect! Here's another clue...`, 'error');
+            // Clear input for next attempt
+            document.getElementById('guess-input').value = '';
         } else {
-            showMessage(`❌ Incorrect! No more clues available. Try again!`, 'error');
+            // All clues revealed and still wrong - end game
+            gameOver = true;
+            renderCards();
+            
+            // Reveal answer card
+            setTimeout(() => {
+                const answerCard = document.getElementById('answer-card');
+                answerCard.classList.remove('empty');
+                answerCard.textContent = currentPuzzle.answer;
+                answerCard.classList.add('revealed');
+            }, 300);
+            
+            showMessage(`❌ Game Over! The answer was "${currentPuzzle.answer}". Try a new game!`, 'error');
+            
+            // Disable input
+            document.getElementById('guess-input').disabled = true;
+            document.getElementById('submit-btn').disabled = true;
         }
-        
-        // Clear input for next attempt
-        document.getElementById('guess-input').value = '';
     }
 }
 
