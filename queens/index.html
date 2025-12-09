@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Queens Puzzle - 8x8</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Queens Puzzle</h1>
+        <p class="instructions">Place queens (♛) so there is exactly one in each row, column, and color region. Queens cannot touch, even diagonally. Click: empty → X → ♛ → empty</p>
+        
+        <div id="queens-grid"></div>
+        
+        <div class="controls">
+            <button id="reset-btn">Reset Puzzle</button>
+            <button id="new-game-btn">New Game</button>
+        </div>
+        
+        <div id="message" class="message"></div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
