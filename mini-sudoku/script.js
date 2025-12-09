@@ -144,20 +144,37 @@ function clearMessage() {
     messageEl.className = 'message';
 }
 
-// Clear selected cell
-document.getElementById('clear-btn').addEventListener('click', () => {
-    if (! selectedCell) {
-        showMessage('Please select a cell first!', 'error');
-        setTimeout(clearMessage, 2000);
-        return;
-    }
-    
-    const { row, col } = selectedCell;
-    if (initialPuzzle[row][col] === 0) {
-        currentPuzzle[row][col] = 0;
-        updateCell(row, col, 0);
-        clearMessage();
-    }
+// Number pad functionality
+document.querySelectorAll('.num-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        if (!selectedCell) {
+            showMessage('Please select a cell first!', 'error');
+            setTimeout(clearMessage, 2000);
+            return;
+        }
+        
+        const { row, col } = selectedCell;
+        
+        // Can't modify locked cells
+        if (initialPuzzle[row][col] !== 0) {
+            return;
+        }
+        
+        const value = btn.dataset.number;
+        
+        if (value === 'clear') {
+            // Clear the cell
+            currentPuzzle[row][col] = 0;
+            updateCell(row, col, 0);
+            clearMessage();
+        } else {
+            // Insert number
+            const num = parseInt(value);
+            currentPuzzle[row][col] = num;
+            updateCell(row, col, num);
+            checkCompletion();
+        }
+    });
 });
 
 // Reset puzzle
