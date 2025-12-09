@@ -7,18 +7,32 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
-        <h1>Mini Sudoku</h1>
-        <p class="instructions">Click on a cell and type numbers 1-6. Fill all cells to complete the puzzle! </p>
-        
-        <div id="sudoku-grid"></div>
-        
-        <div class="controls">
-            <button id="clear-btn">Clear Selected Cell</button>
-            <button id="reset-btn">Reset Puzzle</button>
+    <div class="iphone-frame">
+        <div class="iphone-notch"></div>
+        <div class="iphone-screen">
+            <div class="container">
+                <h1>Mini Sudoku</h1>
+                <p class="instructions">Click on a cell and type numbers 1-6. Fill all cells to complete the puzzle! </p>
+                
+                <div id="sudoku-grid"></div>
+                
+                <div class="number-pad">
+                    <button class="num-btn" data-number="1">1</button>
+                    <button class="num-btn" data-number="2">2</button>
+                    <button class="num-btn" data-number="3">3</button>
+                    <button class="num-btn" data-number="4">4</button>
+                    <button class="num-btn" data-number="5">5</button>
+                    <button class="num-btn" data-number="6">6</button>
+                    <button class="num-btn clear-pad-btn" data-number="clear">Clear</button>
+                </div>
+                
+                <div class="controls">
+                    <button id="reset-btn">Reset Puzzle</button>
+                </div>
+                
+                <div id="message" class="message"></div>
+            </div>
         </div>
-        
-        <div id="message" class="message"></div>
     </div>
     
     <script src="script.js"></script>
