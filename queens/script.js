@@ -2,13 +2,13 @@
 let grid = [];
 let colorRegions = [];
 const GRID_SIZE = 8;
-const NUM_REGIONS = 8;  // Must match COLORS.length
 const MIN_REGION_SIZE = 6;
 const MAX_REGION_SIZE = 10;
 const COLORS = [
     '#FFB3BA', '#FFDFBA', '#FFFFBA', '#BAFFC9',
     '#BAE1FF', '#E0BBE4', '#FFDFD3', '#D4F1F4'
 ];
+const NUM_REGIONS = COLORS.length;  // Number of regions matches number of colors
 
 // Cell states
 const EMPTY = 0;
@@ -51,7 +51,7 @@ function generateColorRegions() {
         let targetSize;
         if (regionId === NUM_REGIONS - 1) {
             // Last region: assign ALL remaining unassigned cells
-            targetSize = GRID_SIZE * GRID_SIZE; // Large number to get all remaining
+            targetSize = Number.MAX_SAFE_INTEGER; // No limit, fill all remaining cells
         } else {
             targetSize = Math.floor(Math.random() * (MAX_REGION_SIZE - MIN_REGION_SIZE + 1)) + MIN_REGION_SIZE;
         }
