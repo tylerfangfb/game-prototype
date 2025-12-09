@@ -5,8 +5,11 @@ const GRID_SIZE = 8;
 const MIN_REGION_SIZE = 6;
 const MAX_REGION_SIZE = 10;
 const COLORS = [
-    '#FFB3BA', '#FFDFBA', '#FFFFBA', '#BAFFC9',
-    '#BAE1FF', '#E0BBE4', '#FFDFD3', '#D4F1F4'
+    '#FFFFBA', // yellow
+    '#FFB3BA', // red
+    '#BAE1FF', // blue
+    '#BAFFC9', // green
+    '#D3D3D3'  // grey
 ];
 const NUM_REGIONS = COLORS.length;  // Number of regions matches number of colors
 
@@ -260,27 +263,27 @@ function checkWinCondition() {
         }
     }
     
-    // Need exactly 8 queens
-    if (queenCount !== GRID_SIZE) {
+    // Need exactly NUM_REGIONS queens (one per color region)
+    if (queenCount !== NUM_REGIONS) {
         return;
     }
     
-    // Check one queen per row
+    // Check at most one queen per row
     for (let r = 0; r < GRID_SIZE; r++) {
         let count = 0;
         for (let c = 0; c < GRID_SIZE; c++) {
             if (grid[r][c] === QUEEN) count++;
         }
-        if (count !== 1) return;
+        if (count > 1) return;
     }
     
-    // Check one queen per column
+    // Check at most one queen per column
     for (let c = 0; c < GRID_SIZE; c++) {
         let count = 0;
         for (let r = 0; r < GRID_SIZE; r++) {
             if (grid[r][c] === QUEEN) count++;
         }
-        if (count !== 1) return;
+        if (count > 1) return;
     }
     
     // Check one queen per color region
