@@ -2,6 +2,8 @@
 let grid = [];
 let colorRegions = [];
 const GRID_SIZE = 8;
+const MIN_REGION_SIZE = 4;
+const MAX_REGION_SIZE = 10;
 const COLORS = [
     '#FFB3BA', '#FFDFBA', '#FFFFBA', '#BAFFC9',
     '#BAE1FF', '#E0BBE4', '#FFDFD3', '#D4F1F4'
@@ -42,8 +44,8 @@ function generateColorRegions() {
         
         if (colorRegions[start.r][start.c] !== -1) continue;
         
-        // Decide region size (4-10 cells)
-        const targetSize = Math.floor(Math.random() * 7) + 4;
+        // Decide region size
+        const targetSize = Math.floor(Math.random() * (MAX_REGION_SIZE - MIN_REGION_SIZE + 1)) + MIN_REGION_SIZE;
         const region = [];
         const queue = [start];
         const visited = new Set();
