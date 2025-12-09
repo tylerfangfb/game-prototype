@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pinpoint - Category Guessing Game</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="iphone-frame">
+        <div class="iphone-notch"></div>
+        <div class="iphone-screen">
+            <div class="container">
+                <h1>Pinpoint</h1>
+                <p class="instructions">Guess the category with as few clues as possible! </p>
+                
+                <div id="card-stack">
+                    <!-- Cards will be generated here -->
+                </div>
+                
+                <div class="input-section">
+                    <input type="text" id="guess-input" placeholder="Enter your guess...">
+                    <button id="submit-btn">Check Answer</button>
+                </div>
+                
+                <div id="message" class="message"></div>
+                
+                <div class="controls">
+                    <button id="new-game-btn">New Game</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
