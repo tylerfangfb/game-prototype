@@ -130,13 +130,8 @@ h1 {
 }
 
 /* Create thicker borders for 2x3 boxes */
-/* Thick right border on all cells in column 2 (cells 2, 8, 14, 20, 26, 32) */
-.cell:nth-child(6n+2) {
-    border-right: 3px solid #333 !important;
-}
-
-/* Thick right border on all cells in column 4 (cells 4, 10, 16, 22, 28, 34) */
-.cell:nth-child(6n+4) {
+/* Thick right border on all cells in column 3 (cells 3, 9, 15, 21, 27, 33) */
+.cell:nth-child(6n+3) {
     border-right: 3px solid #333 !important;
 }
 
