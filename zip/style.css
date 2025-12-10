@@ -118,7 +118,12 @@ h1 {
 }
 
 .cell.saved {
-    background-color: #a5d6a7;
+    background-color: #81c784;
+}
+
+.cell.number-cell.saved {
+    background: black;
+    box-shadow: 0 0 0 3px #81c784;
 }
 
 .cell.number-cell {

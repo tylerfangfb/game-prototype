@@ -175,10 +175,12 @@ function handleStart(e) {
     
     const cellValue = grid[row][col];
     
-    // Allow starting from 1 or from the next number after the last saved number
-    const nextExpectedNumber = getLastSavedNumber() + 1;
+    // Allow starting from 1 or from the last saved number to continue
+    const lastSavedNumber = getLastSavedNumber();
+    const canStart = (lastSavedNumber === 0 && cellValue === 1) || 
+                     (lastSavedNumber > 0 && cellValue === lastSavedNumber);
     
-    if (cellValue === nextExpectedNumber && cellValue <= 6) {
+    if (canStart) {
         isDragging = true;
         startNumber = cellValue;
         currentPath = [{row, col}];
@@ -203,10 +205,12 @@ function handleTouchStart(e) {
         
         const cellValue = grid[row][col];
         
-        // Allow starting from 1 or from the next number after the last saved number
-        const nextExpectedNumber = getLastSavedNumber() + 1;
+        // Allow starting from 1 or from the last saved number to continue
+        const lastSavedNumber = getLastSavedNumber();
+        const canStart = (lastSavedNumber === 0 && cellValue === 1) || 
+                         (lastSavedNumber > 0 && cellValue === lastSavedNumber);
         
-        if (cellValue === nextExpectedNumber && cellValue <= 6) {
+        if (canStart) {
             isDragging = true;
             startNumber = cellValue;
             currentPath = [{row, col}];
