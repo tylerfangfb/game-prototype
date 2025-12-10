@@ -155,20 +155,20 @@ h1 {
     border: 2px solid #2196F3;
 }
 
-.cell.tough-line {
-    background-color: #00bcd4;
-}
-
-.cell.tough-line:hover:not(.locked) {
-    background-color: #00acc1;
-}
-
-.cell.tough-line.selected {
-    background-color: #b2ebf2 !important;
-}
-
 .cell.word-area {
     background-color: #fafafa;
+}
+
+.cell.through-line {
+    background-color: #00bcd4 !important;
+}
+
+.cell.through-line:hover:not(.locked) {
+    background-color: #00acc1 !important;
+}
+
+.cell.through-line.selected {
+    background-color: #b2ebf2 !important;
 }
 
 .cell.correct {

@@ -1,7 +1,7 @@
 // Game constants
 const GRID_ROWS = 9;
 const GRID_COLS = 5;
-const TOUGH_LINE_ROW = 4; // Row 5 (index 4)
+const THROUGH_LINE_ROW = 4; // Row 5 (index 4)
 const VERTICAL_WORD_START = 2; // Vertical words start at row 2 (3rd row)
 const VERTICAL_WORD_END = 6; // Vertical words end at row 6 (7th row) - total 5 rows (2,3,4,5,6)
 
@@ -11,7 +11,7 @@ const ERROR_CLEAR_DELAY = 1000;
 
 // Word sets for the game
 // Each set has 6 words: 1 horizontal word + 5 vertical words that intersect with it
-// Vertical words use rows 2-6 (5 rows), with row 4 being the tough line at position 2 (0-indexed)
+// Vertical words use rows 2-6 (5 rows), with row 4 being the Through Line at position 2 (0-indexed)
 const wordSets = [
     // Horizontal: SHARK at row 4 (S-H-A-R-K across columns 0-4)
     // Verticals must have matching letters at row 4 (position 2 in 0-indexed 5-letter word):
@@ -45,8 +45,8 @@ let currentWords = [];
 let usedWords = [];
 let grid = [];
 let selectedCell = null;
-let toughLineComplete = false;
-let toughLineWord = '';
+let throughLineComplete = false;
+let throughLineWord = '';
 
 // Helper function to get cell element
 function getCellElement(row, col) {
@@ -58,8 +58,8 @@ function initGame() {
     // Select a random word set
     currentWords = [...wordSets[Math.floor(Math.random() * wordSets.length)]];
     usedWords = [];
-    toughLineComplete = false;
-    toughLineWord = '';
+    throughLineComplete = false;
+    throughLineWord = '';
     selectedCell = null;
     
     // Initialize empty grid
@@ -100,9 +100,9 @@ function renderGrid() {
             cell.dataset.row = row;
             cell.dataset.col = col;
             
-            // Add tough line styling
-            if (row === TOUGH_LINE_ROW) {
-                cell.classList.add('tough-line');
+            // Add through line styling
+            if (row === THROUGH_LINE_ROW) {
+                cell.classList.add('through-line');
             }
             
             // Add word area styling for vertical word cells
@@ -123,15 +123,15 @@ function renderGrid() {
 
 // Select a cell
 function selectCell(row, col) {
-    // Check if we're in phase 1 (tough line) or phase 2 (vertical)
-    if (!toughLineComplete && row !== TOUGH_LINE_ROW) {
-        showMessage('Please fill the tough line (cyan row) first!', 'info');
+    // Check if we're in phase 1 (Through Line) or phase 2 (vertical)
+    if (!throughLineComplete && row !== THROUGH_LINE_ROW) {
+        showMessage('Please fill the Through Line (cyan row) first!', 'info');
         setTimeout(clearMessage, 2000);
         return;
     }
     
     // In phase 2, only allow selecting cells in the vertical word range
-    if (toughLineComplete && (row < VERTICAL_WORD_START || row > VERTICAL_WORD_END)) {
+    if (throughLineComplete && (row < VERTICAL_WORD_START || row > VERTICAL_WORD_END)) {
         showMessage('Only fill cells in the word area (rows 3-7)!', 'info');
         setTimeout(clearMessage, 2000);
         return;
@@ -158,13 +158,13 @@ document.addEventListener('keydown', (e) => {
         grid[row][col] = e.key.toUpperCase();
         updateCell(row, col);
         
-        // Check if tough line is complete
-        if (row === TOUGH_LINE_ROW) {
-            checkToughLine();
+        // Check if Through Line is complete
+        if (row === THROUGH_LINE_ROW) {
+            checkThroughLine();
         }
         
         // Check if a vertical column is complete
-        if (toughLineComplete) {
+        if (throughLineComplete) {
             checkVerticalColumn(col);
         }
         
@@ -191,12 +191,12 @@ function updateCell(row, col) {
 
 // Auto-advance to next cell
 function autoAdvanceCell(row, col) {
-    if (!toughLineComplete && row === TOUGH_LINE_ROW) {
-        // During tough line phase, move horizontally
+    if (!throughLineComplete && row === THROUGH_LINE_ROW) {
+        // During Through Line phase, move horizontally
         if (col < GRID_COLS - 1) {
             selectCell(row, col + 1);
         }
-    } else if (toughLineComplete) {
+    } else if (throughLineComplete) {
         // During vertical phase, move vertically within the word range
         if (row < VERTICAL_WORD_END) {
             selectCell(row + 1, col);
@@ -204,31 +204,31 @@ function autoAdvanceCell(row, col) {
     }
 }
 
-// Check if tough line is complete
-function checkToughLine() {
-    // Check if all cells in tough line are filled
+// Check if Through Line is complete
+function checkThroughLine() {
+    // Check if all cells in Through Line are filled
     let word = '';
     for (let col = 0; col < GRID_COLS; col++) {
-        if (!grid[TOUGH_LINE_ROW][col]) {
+        if (!grid[THROUGH_LINE_ROW][col]) {
             return; // Not complete yet
         }
-        word += grid[TOUGH_LINE_ROW][col];
+        word += grid[THROUGH_LINE_ROW][col];
     }
     
     // Validate the word
     if (currentWords.includes(word)) {
-        toughLineComplete = true;
-        toughLineWord = word;
+        throughLineComplete = true;
+        throughLineWord = word;
         usedWords.push(word);
         
         // Mark cells as correct
         for (let col = 0; col < GRID_COLS; col++) {
-            const cell = getCellElement(TOUGH_LINE_ROW, col);
+            const cell = getCellElement(THROUGH_LINE_ROW, col);
             cell.classList.add('correct');
         }
         
         renderWordBank();
-        showMessage('✓ Tough line complete! Now fill the vertical words.', 'success');
+        showMessage('✓ Through Line complete! Now fill the vertical words.', 'success');
         
         // Select first cell of first column (in the vertical word range)
         setTimeout(() => {
@@ -237,7 +237,7 @@ function checkToughLine() {
     } else {
         // Incorrect word
         for (let col = 0; col < GRID_COLS; col++) {
-            const cell = getCellElement(TOUGH_LINE_ROW, col);
+            const cell = getCellElement(THROUGH_LINE_ROW, col);
             cell.classList.add('incorrect');
         }
         
@@ -246,12 +246,12 @@ function checkToughLine() {
         // Clear incorrect cells after animation
         setTimeout(() => {
             for (let col = 0; col < GRID_COLS; col++) {
-                grid[TOUGH_LINE_ROW][col] = '';
-                const cell = getCellElement(TOUGH_LINE_ROW, col);
+                grid[THROUGH_LINE_ROW][col] = '';
+                const cell = getCellElement(THROUGH_LINE_ROW, col);
                 cell.textContent = '';
                 cell.classList.remove('incorrect');
             }
-            selectCell(TOUGH_LINE_ROW, 0);
+            selectCell(THROUGH_LINE_ROW, 0);
         }, ERROR_CLEAR_DELAY);
     }
 }
@@ -259,7 +259,7 @@ function checkToughLine() {
 // Helper function to clear incorrect vertical cells
 function clearIncorrectVerticalCells(col) {
     for (let row = VERTICAL_WORD_START; row <= VERTICAL_WORD_END; row++) {
-        if (row !== TOUGH_LINE_ROW) {
+        if (row !== THROUGH_LINE_ROW) {
             grid[row][col] = '';
             const cell = getCellElement(row, col);
             cell.textContent = '';
@@ -271,7 +271,7 @@ function clearIncorrectVerticalCells(col) {
 
 // Check if a vertical column is complete
 function checkVerticalColumn(col) {
-    // Check if all cells in the vertical word range are filled (rows 2-6, which includes the tough line at row 4)
+    // Check if all cells in the vertical word range are filled (rows 2-6, which includes the Through Line at row 4)
     let word = '';
     for (let row = VERTICAL_WORD_START; row <= VERTICAL_WORD_END; row++) {
         if (!grid[row][col]) {
