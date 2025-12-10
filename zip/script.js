@@ -5,6 +5,7 @@ let currentPath = [];
 let savedPath = []; // Saved path segments when numbers are connected in sequence
 let isDragging = false;
 let startNumber = null;
+let lastSavedNumber = 0; // Cache for the last saved number
 
 // Wall configuration - defines which cells have walls on which sides
 // Format: {row: {col: ['top', 'right', 'bottom', 'left']}}
@@ -65,6 +66,7 @@ function initGame() {
     savedPath = [];
     isDragging = false;
     startNumber = null;
+    lastSavedNumber = 0;
     
     // Generate walls
     generateWalls();
@@ -288,8 +290,13 @@ function addToPath(row, col) {
         
         // If we reached the next number in sequence, save the path
         if (cellValue === currentNumber + 1 && cellValue > 0) {
-            // Save current path to savedPath
-            savedPath = [...savedPath, ...currentPath];
+            // Save current path to savedPath, but skip first cell if it's already saved
+            const firstCell = currentPath[0];
+            const isFirstCellSaved = savedPath.some(c => c.row === firstCell.row && c.col === firstCell.col);
+            const pathToSave = isFirstCellSaved ? currentPath.slice(1) : currentPath;
+            
+            savedPath = [...savedPath, ...pathToSave];
+            lastSavedNumber = cellValue; // Update cached value
             currentPath = [];
             isDragging = false;
             startNumber = null;
@@ -303,16 +310,9 @@ function addToPath(row, col) {
     }
 }
 
-// Get the last saved number
+// Get the last saved number (cached)
 function getLastSavedNumber() {
-    let maxNumber = 0;
-    for (const cell of savedPath) {
-        const value = grid[cell.row][cell.col];
-        if (value > maxNumber) {
-            maxNumber = value;
-        }
-    }
-    return maxNumber;
+    return lastSavedNumber;
 }
 
 // Get current expected number in sequence
