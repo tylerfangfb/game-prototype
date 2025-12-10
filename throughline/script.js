@@ -130,8 +130,9 @@ function selectCell(row, col) {
         return;
     }
     
-    // In phase 2, allow selecting cells in any row (words can span different ranges)
-    // No restriction needed - vertical words can start from any row and span 5 cells
+    // In phase 2, allow selecting cells in any row for better UX
+    // Validation logic still checks rows 2-6 (VERTICAL_WORD_START to VERTICAL_WORD_END)
+    // but players can explore the full grid without restrictive error messages
     
     const previousSelected = document.querySelector('.cell.selected');
     if (previousSelected) {
