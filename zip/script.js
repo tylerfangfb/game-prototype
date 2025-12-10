@@ -2,51 +2,72 @@
 let grid = [];
 let numberPositions = {}; // Maps numbers 1-6 to {row, col}
 let currentPath = [];
+let savedPath = []; // Saved path segments when numbers are connected in sequence
 let isDragging = false;
 let startNumber = null;
 
 // Wall configuration - defines which cells have walls on which sides
 // Format: {row: {col: ['top', 'right', 'bottom', 'left']}}
-const walls = {
-    0: {
-        1: ['right'],
-        3: ['right'],
-        5: ['bottom']
-    },
-    1: {
-        0: ['right'],
-        2: ['right'],
-        4: ['right']
-    },
-    2: {
-        1: ['right'],
-        3: ['right'],
-        5: ['right', 'bottom']
-    },
-    3: {
-        0: ['right', 'bottom'],
-        2: ['right'],
-        4: ['right']
-    },
-    4: {
-        1: ['right'],
-        3: ['right'],
-        5: ['right']
-    },
-    5: {
-        0: ['right'],
-        2: ['right'],
-        4: ['right']
+let walls = {};
+
+// Generate exactly 5 separate walls
+function generateWalls() {
+    walls = {};
+    const wallCount = 5;
+    
+    // Each wall is a line of 2-4 segments
+    for (let i = 0; i < wallCount; i++) {
+        // Random starting position
+        const startRow = Math.floor(Math.random() * 6);
+        const startCol = Math.floor(Math.random() * 6);
+        
+        // Random direction (0=horizontal, 1=vertical)
+        const isHorizontal = Math.random() < 0.5;
+        
+        // Random length (2-4 segments)
+        const length = Math.floor(Math.random() * 3) + 2;
+        
+        // Add wall segments
+        for (let j = 0; j < length; j++) {
+            let row = startRow;
+            let col = startCol;
+            
+            if (isHorizontal) {
+                col = startCol + j;
+                if (col >= 6) break; // Don't go out of bounds
+                
+                // Add right wall to this cell
+                if (!walls[row]) walls[row] = {};
+                if (!walls[row][col]) walls[row][col] = [];
+                if (!walls[row][col].includes('right')) {
+                    walls[row][col].push('right');
+                }
+            } else {
+                row = startRow + j;
+                if (row >= 6) break; // Don't go out of bounds
+                
+                // Add bottom wall to this cell
+                if (!walls[row]) walls[row] = {};
+                if (!walls[row][col]) walls[row][col] = [];
+                if (!walls[row][col].includes('bottom')) {
+                    walls[row][col].push('bottom');
+                }
+            }
+        }
     }
-};
+}
 
 // Initialize the game
 function initGame() {
     grid = [];
     numberPositions = {};
     currentPath = [];
+    savedPath = [];
     isDragging = false;
     startNumber = null;
+    
+    // Generate walls
+    generateWalls();
     
     // Create empty 6x6 grid
     for (let i = 0; i < 6; i++) {
@@ -152,9 +173,14 @@ function handleStart(e) {
     
     if (isNaN(row) || isNaN(col)) return;
     
-    if (grid[row][col] === 1) {
+    const cellValue = grid[row][col];
+    
+    // Allow starting from 1 or from the next number after the last saved number
+    const nextExpectedNumber = getLastSavedNumber() + 1;
+    
+    if (cellValue === nextExpectedNumber && cellValue <= 6) {
         isDragging = true;
-        startNumber = 1;
+        startNumber = cellValue;
         currentPath = [{row, col}];
         updateHighlighting();
     }
@@ -175,9 +201,14 @@ function handleTouchStart(e) {
         const row = parseInt(element.dataset.row);
         const col = parseInt(element.dataset.col);
         
-        if (grid[row][col] === 1) {
+        const cellValue = grid[row][col];
+        
+        // Allow starting from 1 or from the next number after the last saved number
+        const nextExpectedNumber = getLastSavedNumber() + 1;
+        
+        if (cellValue === nextExpectedNumber && cellValue <= 6) {
             isDragging = true;
-            startNumber = 1;
+            startNumber = cellValue;
             currentPath = [{row, col}];
             updateHighlighting();
         }
@@ -251,16 +282,38 @@ function addToPath(row, col) {
         currentPath.push({row, col});
         updateHighlighting();
         
-        // Check win condition
-        if (cellValue === 6) {
-            checkWinCondition();
+        // If we reached the next number in sequence, save the path
+        if (cellValue === currentNumber + 1 && cellValue > 0) {
+            // Save current path to savedPath
+            savedPath = [...savedPath, ...currentPath];
+            currentPath = [];
+            isDragging = false;
+            startNumber = null;
+            updateHighlighting();
+            
+            // Check win condition
+            if (cellValue === 6) {
+                checkWinCondition();
+            }
         }
     }
 }
 
+// Get the last saved number
+function getLastSavedNumber() {
+    let maxNumber = 0;
+    for (const cell of savedPath) {
+        const value = grid[cell.row][cell.col];
+        if (value > maxNumber) {
+            maxNumber = value;
+        }
+    }
+    return maxNumber;
+}
+
 // Get current expected number in sequence
 function getCurrentSequenceNumber() {
-    let maxNumber = 1;
+    let maxNumber = startNumber || 1;
     for (const cell of currentPath) {
         const value = grid[cell.row][cell.col];
         if (value > maxNumber) {
@@ -308,12 +361,9 @@ function handleEnd(e) {
     isDragging = false;
     startNumber = null;
     
-    // If path is not complete, clear it
-    const currentNumber = getCurrentSequenceNumber();
-    if (currentNumber !== 6) {
-        currentPath = [];
-        updateHighlighting();
-    }
+    // Clear current path (saved path is preserved)
+    currentPath = [];
+    updateHighlighting();
 }
 
 // Update highlighting on the grid
@@ -324,28 +374,32 @@ function updateHighlighting() {
         const row = parseInt(cell.dataset.row);
         const col = parseInt(cell.dataset.col);
         
-        const isInPath = currentPath.some(c => c.row === row && c.col === col);
+        const isInCurrentPath = currentPath.some(c => c.row === row && c.col === col);
+        const isInSavedPath = savedPath.some(c => c.row === row && c.col === col);
         
-        if (isInPath) {
+        // Remove all highlighting classes first
+        cell.classList.remove('highlighted', 'saved', 'start-selected');
+        
+        if (isInSavedPath) {
+            cell.classList.add('saved');
+        }
+        
+        if (isInCurrentPath) {
             cell.classList.add('highlighted');
             
-            // Add special highlight for number 1 when selected
-            if (grid[row][col] === 1 && isDragging) {
+            // Add special highlight for starting number when selected
+            const cellValue = grid[row][col];
+            if (cellValue === startNumber && isDragging) {
                 cell.classList.add('start-selected');
-            } else {
-                cell.classList.remove('start-selected');
             }
-        } else {
-            cell.classList.remove('highlighted');
-            cell.classList.remove('start-selected');
         }
     });
 }
 
 // Check win condition
 function checkWinCondition() {
-    // Must have all 36 cells in path
-    if (currentPath.length !== 36) {
+    // Must have all 36 cells in saved path
+    if (savedPath.length !== 36) {
         return;
     }
     
@@ -353,7 +407,7 @@ function checkWinCondition() {
     const numbers = [1, 2, 3, 4, 5, 6];
     for (const num of numbers) {
         const pos = numberPositions[num];
-        const inPath = currentPath.some(c => c.row === pos.row && c.col === pos.col);
+        const inPath = savedPath.some(c => c.row === pos.row && c.col === pos.col);
         if (!inPath) {
             return;
         }
@@ -363,7 +417,7 @@ function checkWinCondition() {
     let lastNumberIndex = -1;
     for (let i = 1; i <= 6; i++) {
         const pos = numberPositions[i];
-        const pathIndex = currentPath.findIndex(c => c.row === pos.row && c.col === pos.col);
+        const pathIndex = savedPath.findIndex(c => c.row === pos.row && c.col === pos.col);
         if (pathIndex <= lastNumberIndex) {
             return;
         }

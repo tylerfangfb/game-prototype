@@ -117,6 +117,10 @@ h1 {
     background-color: #bbdefb;
 }
 
+.cell.saved {
+    background-color: #a5d6a7;
+}
+
 .cell.number-cell {
     background: black;
     color: white;
