@@ -134,13 +134,13 @@ h1 {
     color: #fff;
 }
 
-.card. empty {
+.card.empty {
     background: #f0f0f0;
     color: transparent;
     border-color: #ccc;
 }
 
-.card. empty::after {
+.card.empty::after {
     content: '?';
     color: #999;
     font-size: 2em;
@@ -153,7 +153,7 @@ h1 {
     font-size: 1.5em;
 }
 
-.card. revealed {
+.card.revealed {
     animation: revealCard 0.5s ease;
 }
 
