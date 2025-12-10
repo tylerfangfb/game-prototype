@@ -130,12 +130,9 @@ function selectCell(row, col) {
         return;
     }
     
-    // In phase 2, only allow selecting cells in the vertical word range
-    if (throughLineComplete && (row < VERTICAL_WORD_START || row > VERTICAL_WORD_END)) {
-        showMessage('Only fill cells in the word area (rows 3-7)!', 'info');
-        setTimeout(clearMessage, 2000);
-        return;
-    }
+    // In phase 2, allow selecting cells in any row for better UX
+    // Validation logic still checks rows 2-6 (VERTICAL_WORD_START to VERTICAL_WORD_END)
+    // but players can explore the full grid without restrictive error messages
     
     const previousSelected = document.querySelector('.cell.selected');
     if (previousSelected) {
