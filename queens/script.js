@@ -1,6 +1,7 @@
 // Game state
 let grid = [];
 let colorRegions = [];
+let lockedCells = new Set();  // Track cells with locked queens using "r,c" format for O(1) lookup
 const GRID_SIZE = 8;
 const MIN_REGION_SIZE = 6;
 const MAX_REGION_SIZE = 10;
@@ -9,7 +10,10 @@ const COLORS = [
     '#FFB3BA', // red
     '#BAE1FF', // blue
     '#BAFFC9', // green
-    '#D3D3D3'  // grey
+    '#D3D3D3', // grey
+    '#FFD9BA', // peach
+    '#E0BAFF', // lavender
+    '#BAFFF0'  // cyan
 ];
 const NUM_REGIONS = COLORS.length;  // Number of regions matches number of colors
 
@@ -21,7 +25,9 @@ const QUEEN = 2;   // ♛
 // Initialize game
 function initGame() {
     grid = Array(GRID_SIZE).fill(0).map(() => Array(GRID_SIZE).fill(EMPTY));
+    lockedCells = new Set();
     generateColorRegions();
+    placeInitialQueen();
     renderGrid();
     clearMessage();
 }
@@ -101,6 +107,40 @@ function generateColorRegions() {
     }
 }
 
+// Place one initial queen for a random color
+// The queen is placed in a valid position that doesn't make the puzzle unsolvable
+function placeInitialQueen() {
+    // Choose a random color region
+    const randomRegion = Math.floor(Math.random() * NUM_REGIONS);
+    
+    // Find all cells in this region
+    const regionCells = [];
+    for (let r = 0; r < GRID_SIZE; r++) {
+        for (let c = 0; c < GRID_SIZE; c++) {
+            if (colorRegions[r][c] === randomRegion) {
+                regionCells.push({r, c});
+            }
+        }
+    }
+    
+    // Try to place queen in a valid position
+    // Prefer positions that don't restrict the puzzle too much
+    // Try center positions first as they tend to leave more options
+    shuffleArray(regionCells);
+    
+    for (const cell of regionCells) {
+        const {r, c} = cell;
+        
+        // Check if this position is valid (doesn't touch other queens)
+        if (isValidQueenPlacement(r, c)) {
+            // Place the queen and mark it as locked
+            grid[r][c] = QUEEN;
+            lockedCells.add(`${r},${c}`);
+            break;
+        }
+    }
+}
+
 // Get adjacent neighbors (up, down, left, right)
 function getNeighbors(r, c) {
     const neighbors = [];
@@ -147,12 +187,17 @@ function renderGrid() {
             
             // Set cell content
             const state = grid[r][c];
+            const isLocked = lockedCells.has(`${r},${c}`);
+            
             if (state === MARKED) {
                 cell.textContent = 'X';
                 cell.classList.add('marked');
             } else if (state === QUEEN) {
                 cell.textContent = '♛';
                 cell.classList.add('queen');
+                if (isLocked) {
+                    cell.classList.add('locked');
+                }
             }
             
             cell.addEventListener('click', () => handleCellClick(r, c));
@@ -188,6 +233,14 @@ function addBoldBorders(cell, r, c) {
 
 // Handle cell click - cycle through states
 function handleCellClick(r, c) {
+    // Check if this cell has a locked queen
+    const isLocked = lockedCells.has(`${r},${c}`);
+    if (isLocked) {
+        showMessage('This queen is locked and cannot be changed!', 'error');
+        setTimeout(clearMessage, 2000);
+        return;
+    }
+    
     const currentState = grid[r][c];
     
     // Cycle: EMPTY -> MARKED -> QUEEN -> EMPTY
@@ -214,8 +267,9 @@ function handleCellClick(r, c) {
 function updateCell(r, c) {
     const cell = document.querySelector(`[data-row="${r}"][data-col="${c}"]`);
     const state = grid[r][c];
+    const isLocked = lockedCells.has(`${r},${c}`);
     
-    cell.classList.remove('marked', 'queen');
+    cell.classList.remove('marked', 'queen', 'locked');
     
     if (state === MARKED) {
         cell.textContent = 'X';
@@ -223,6 +277,9 @@ function updateCell(r, c) {
     } else if (state === QUEEN) {
         cell.textContent = '♛';
         cell.classList.add('queen');
+        if (isLocked) {
+            cell.classList.add('locked');
+        }
     } else {
         cell.textContent = '';
     }
@@ -328,10 +385,17 @@ function clearMessage() {
     messageEl.className = 'message';
 }
 
-// Reset puzzle (clear all placements but keep same colors)
+// Reset puzzle (clear all placements but keep same colors and locked queen)
 document.getElementById('reset-btn').addEventListener('click', () => {
     if (confirm('Are you sure you want to reset the puzzle?')) {
         grid = Array(GRID_SIZE).fill(0).map(() => Array(GRID_SIZE).fill(EMPTY));
+        
+        // Restore locked queens
+        for (const key of lockedCells) {
+            const [r, c] = key.split(',').map(Number);
+            grid[r][c] = QUEEN;
+        }
+        
         renderGrid();
         clearMessage();
     }
