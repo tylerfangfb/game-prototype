@@ -5,6 +5,10 @@ const TOUGH_LINE_ROW = 4; // Row 5 (index 4)
 const VERTICAL_WORD_START = 2; // Vertical words start at row 2 (3rd row)
 const VERTICAL_WORD_END = 6; // Vertical words end at row 6 (7th row) - total 5 rows (2,3,4,5,6)
 
+// Animation timing constants
+const SUCCESS_MESSAGE_DELAY = 500;
+const ERROR_CLEAR_DELAY = 1000;
+
 // Word sets for the game
 // Each set has 6 words: 1 horizontal word + 5 vertical words that intersect with it
 // Vertical words use rows 2-6 (5 rows), with row 4 being the tough line at position 2 (0-indexed)
@@ -20,7 +24,7 @@ const wordSets = [
     ['SHARK', 'BASIC', 'ASHES', 'SNACK', 'STRAW', 'BIKES'],
     
     // Horizontal: BLEND at row 4 (B-L-E-N-D across columns 0-4)
-    // Column 0: needs B at position 2 -РОБED - wait, CUBED (C-U-B-E-D rows 2-6)
+    // Column 0: needs B at position 2 - CUBED (C-U-B-E-D rows 2-6)
     // Column 1: needs L at position 2 - PILES (P-I-L-E-S rows 2-6)
     // Column 2: needs E at position 2 - CHEER (C-H-E-E-R rows 2-6)
     // Column 3: needs N at position 2 - TUNES (T-U-N-E-S rows 2-6)
@@ -43,6 +47,11 @@ let grid = [];
 let selectedCell = null;
 let toughLineComplete = false;
 let toughLineWord = '';
+
+// Helper function to get cell element
+function getCellElement(row, col) {
+    return document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+}
 
 // Initialize the game
 function initGame() {
@@ -133,7 +142,7 @@ function selectCell(row, col) {
         previousSelected.classList.remove('selected');
     }
     
-    const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+    const cell = getCellElement(row, col);
     cell.classList.add('selected');
     selectedCell = { row, col };
 }
@@ -173,7 +182,7 @@ document.addEventListener('keydown', (e) => {
 
 // Update a single cell
 function updateCell(row, col) {
-    const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+    const cell = getCellElement(row, col);
     cell.textContent = grid[row][col];
     
     // Remove validation classes
@@ -214,7 +223,7 @@ function checkToughLine() {
         
         // Mark cells as correct
         for (let col = 0; col < GRID_COLS; col++) {
-            const cell = document.querySelector(`[data-row="${TOUGH_LINE_ROW}"][data-col="${col}"]`);
+            const cell = getCellElement(TOUGH_LINE_ROW, col);
             cell.classList.add('correct');
         }
         
@@ -224,11 +233,11 @@ function checkToughLine() {
         // Select first cell of first column (in the vertical word range)
         setTimeout(() => {
             selectCell(VERTICAL_WORD_START, 0);
-        }, 500);
+        }, SUCCESS_MESSAGE_DELAY);
     } else {
         // Incorrect word
         for (let col = 0; col < GRID_COLS; col++) {
-            const cell = document.querySelector(`[data-row="${TOUGH_LINE_ROW}"][data-col="${col}"]`);
+            const cell = getCellElement(TOUGH_LINE_ROW, col);
             cell.classList.add('incorrect');
         }
         
@@ -238,13 +247,26 @@ function checkToughLine() {
         setTimeout(() => {
             for (let col = 0; col < GRID_COLS; col++) {
                 grid[TOUGH_LINE_ROW][col] = '';
-                const cell = document.querySelector(`[data-row="${TOUGH_LINE_ROW}"][data-col="${col}"]`);
+                const cell = getCellElement(TOUGH_LINE_ROW, col);
                 cell.textContent = '';
                 cell.classList.remove('incorrect');
             }
             selectCell(TOUGH_LINE_ROW, 0);
-        }, 1000);
+        }, ERROR_CLEAR_DELAY);
     }
+}
+
+// Helper function to clear incorrect vertical cells
+function clearIncorrectVerticalCells(col) {
+    for (let row = VERTICAL_WORD_START; row <= VERTICAL_WORD_END; row++) {
+        if (row !== TOUGH_LINE_ROW) {
+            grid[row][col] = '';
+            const cell = getCellElement(row, col);
+            cell.textContent = '';
+            cell.classList.remove('incorrect');
+        }
+    }
+    selectCell(VERTICAL_WORD_START, col);
 }
 
 // Check if a vertical column is complete
@@ -264,7 +286,7 @@ function checkVerticalColumn(col) {
         
         // Mark cells as correct
         for (let row = VERTICAL_WORD_START; row <= VERTICAL_WORD_END; row++) {
-            const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+            const cell = getCellElement(row, col);
             cell.classList.add('correct');
         }
         
@@ -278,12 +300,12 @@ function checkVerticalColumn(col) {
         if (col < GRID_COLS - 1) {
             setTimeout(() => {
                 selectCell(VERTICAL_WORD_START, col + 1);
-            }, 500);
+            }, SUCCESS_MESSAGE_DELAY);
         }
     } else if (usedWords.includes(word)) {
         // Word already used
         for (let row = VERTICAL_WORD_START; row <= VERTICAL_WORD_END; row++) {
-            const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+            const cell = getCellElement(row, col);
             cell.classList.add('incorrect');
         }
         
@@ -291,20 +313,12 @@ function checkVerticalColumn(col) {
         
         // Clear incorrect cells after animation
         setTimeout(() => {
-            for (let row = VERTICAL_WORD_START; row <= VERTICAL_WORD_END; row++) {
-                if (row !== TOUGH_LINE_ROW) {
-                    grid[row][col] = '';
-                    const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
-                    cell.textContent = '';
-                    cell.classList.remove('incorrect');
-                }
-            }
-            selectCell(VERTICAL_WORD_START, col);
-        }, 1000);
+            clearIncorrectVerticalCells(col);
+        }, ERROR_CLEAR_DELAY);
     } else {
         // Incorrect word
         for (let row = VERTICAL_WORD_START; row <= VERTICAL_WORD_END; row++) {
-            const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+            const cell = getCellElement(row, col);
             cell.classList.add('incorrect');
         }
         
@@ -312,16 +326,8 @@ function checkVerticalColumn(col) {
         
         // Clear incorrect cells after animation
         setTimeout(() => {
-            for (let row = VERTICAL_WORD_START; row <= VERTICAL_WORD_END; row++) {
-                if (row !== TOUGH_LINE_ROW) {
-                    grid[row][col] = '';
-                    const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
-                    cell.textContent = '';
-                    cell.classList.remove('incorrect');
-                }
-            }
-            selectCell(VERTICAL_WORD_START, col);
-        }, 1000);
+            clearIncorrectVerticalCells(col);
+        }, ERROR_CLEAR_DELAY);
     }
 }
 
