@@ -37,21 +37,21 @@ function generateWalls() {
                 col = startCol + j;
                 if (col >= 6) break; // Don't go out of bounds
                 
-                // Add right wall to this cell
+                // Add bottom wall to this cell (horizontal walls block vertical movement)
                 if (!walls[row]) walls[row] = {};
                 if (!walls[row][col]) walls[row][col] = [];
-                if (!walls[row][col].includes('right')) {
-                    walls[row][col].push('right');
+                if (!walls[row][col].includes('bottom')) {
+                    walls[row][col].push('bottom');
                 }
             } else {
                 row = startRow + j;
                 if (row >= 6) break; // Don't go out of bounds
                 
-                // Add bottom wall to this cell
+                // Add right wall to this cell (vertical walls block horizontal movement)
                 if (!walls[row]) walls[row] = {};
                 if (!walls[row][col]) walls[row][col] = [];
-                if (!walls[row][col].includes('bottom')) {
-                    walls[row][col].push('bottom');
+                if (!walls[row][col].includes('right')) {
+                    walls[row][col].push('right');
                 }
             }
         }
