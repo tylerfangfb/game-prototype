@@ -1,0 +1,282 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+/* iPhone Frame */
+.iphone-frame {
+    background: #1a1a1a;
+    border-radius: 50px;
+    padding: 15px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 
+                0 0 0 2px #2c2c2c,
+                inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+    position: relative;
+    max-width: 540px;
+    width: 100%;
+}
+
+.iphone-notch {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 150px;
+    height: 30px;
+    background: #1a1a1a;
+    border-radius: 0 0 20px 20px;
+    z-index: 10;
+}
+
+.iphone-notch::before {
+    content: '';
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 6px;
+    background: #333;
+    border-radius: 3px;
+}
+
+.iphone-screen {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 40px;
+    overflow: hidden;
+    padding: 40px 20px 20px;
+    min-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.container {
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    width: 100%;
+}
+
+h1 {
+    text-align: center;
+    color: #667eea;
+    margin-bottom: 10px;
+    font-size: 2.5em;
+}
+
+.instructions {
+    text-align: center;
+    color: #666;
+    margin-bottom: 20px;
+    font-size: 0.9em;
+}
+
+/* Word Bank */
+.word-bank {
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.word-bank-label {
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 10px;
+    font-size: 1.1em;
+}
+
+#word-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+}
+
+.word-item {
+    padding: 8px 16px;
+    background-color: #667eea;
+    color: white;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 1em;
+    transition: all 0.3s;
+}
+
+.word-item.used {
+    background-color: #ccc;
+    color: #666;
+    text-decoration: line-through;
+}
+
+/* Game Grid */
+#game-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0;
+    width: 100%;
+    max-width: 300px;
+    margin: 0 auto 20px;
+    border: 3px solid #333;
+    background: white;
+}
+
+.cell {
+    aspect-ratio: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.3em;
+    font-weight: bold;
+    background: white;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    border: 1px solid #999;
+    text-transform: uppercase;
+}
+
+.cell:hover:not(.locked) {
+    background-color: #f0f0f0;
+}
+
+.cell.selected {
+    background-color: #e3f2fd !important;
+    border: 2px solid #2196F3;
+}
+
+.cell.tough-line {
+    background-color: #00bcd4;
+}
+
+.cell.tough-line:hover:not(.locked) {
+    background-color: #00acc1;
+}
+
+.cell.tough-line.selected {
+    background-color: #b2ebf2 !important;
+}
+
+.cell.word-area {
+    background-color: #fafafa;
+}
+
+.cell.correct {
+    background-color: #c8e6c9;
+}
+
+.cell.incorrect {
+    background-color: #ffcdd2;
+    animation: shake 0.3s;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+/* Controls */
+.controls {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 15px;
+}
+
+button {
+    padding: 10px 20px;
+    font-size: 1em;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    background-color: #667eea;
+    color: white;
+    transition: background-color 0.3s;
+    font-weight: 600;
+}
+
+button:hover {
+    background-color: #5568d3;
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+/* Message */
+.message {
+    text-align: center;
+    font-size: 1.1em;
+    font-weight: bold;
+    min-height: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.message.success {
+    color: #4CAF50;
+}
+
+.message.error {
+    color: #f44336;
+}
+
+.message.info {
+    color: #2196F3;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .iphone-frame {
+        border-radius: 0;
+        padding: 0;
+        box-shadow: none;
+        max-width: 100%;
+    }
+    
+    .iphone-notch {
+        display: none;
+    }
+    
+    .iphone-screen {
+        border-radius: 0;
+        padding: 20px;
+        min-height: 100vh;
+    }
+    
+    .container {
+        padding: 20px;
+    }
+    
+    h1 {
+        font-size: 2em;
+    }
+    
+    .cell {
+        font-size: 1.1em;
+    }
+    
+    #game-grid {
+        max-width: 100%;
+    }
+    
+    .controls {
+        flex-direction: column;
+    }
+    
+    button {
+        width: 100%;
+    }
+}
