@@ -271,7 +271,7 @@ function clearIncorrectVerticalCells(col) {
 
 // Check if a vertical column is complete
 function checkVerticalColumn(col) {
-    // Check if all cells in the vertical word range are filled (rows 2-6, which includes the tough line at row 4)
+    // Check if all cells in the vertical word range are filled (rows 2-6, which includes the Through Line at row 4)
     let word = '';
     for (let row = VERTICAL_WORD_START; row <= VERTICAL_WORD_END; row++) {
         if (!grid[row][col]) {
