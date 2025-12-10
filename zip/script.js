@@ -119,6 +119,11 @@ function addEventListeners() {
     const gridEl = document.getElementById('zip-grid');
     const cells = gridEl.querySelectorAll('.cell');
     
+    // Remove existing document listeners to prevent duplicates
+    document.removeEventListener('mouseup', handleEnd);
+    document.removeEventListener('touchmove', handleTouchMove);
+    document.removeEventListener('touchend', handleEnd);
+    
     // Mouse events
     cells.forEach(cell => {
         cell.addEventListener('mousedown', handleStart);
@@ -139,8 +144,13 @@ function addEventListeners() {
 // Handle start of drag (mouse)
 function handleStart(e) {
     e.preventDefault();
+    
+    if (!e.target.dataset.row || !e.target.dataset.col) return;
+    
     const row = parseInt(e.target.dataset.row);
     const col = parseInt(e.target.dataset.col);
+    
+    if (isNaN(row) || isNaN(col)) return;
     
     if (grid[row][col] === 1) {
         isDragging = true;
@@ -178,8 +188,12 @@ function handleTouchStart(e) {
 function handleMove(e) {
     if (!isDragging) return;
     
+    if (!e.target.dataset.row || !e.target.dataset.col) return;
+    
     const row = parseInt(e.target.dataset.row);
     const col = parseInt(e.target.dataset.col);
+    
+    if (isNaN(row) || isNaN(col)) return;
     
     addToPath(row, col);
 }
