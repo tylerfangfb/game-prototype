@@ -154,9 +154,14 @@ function handleStart(e) {
 function handleTouchStart(e) {
     e.preventDefault();
     const touch = e.touches[0];
-    const element = document.elementFromPoint(touch.clientX, touch.clientY);
     
-    if (element && element.classList.contains('cell')) {
+    // Try to use the target first, fallback to elementFromPoint
+    let element = e.target;
+    if (!element.classList.contains('cell')) {
+        element = document.elementFromPoint(touch.clientX, touch.clientY);
+    }
+    
+    if (element && element.classList.contains('cell') && element.dataset.row) {
         const row = parseInt(element.dataset.row);
         const col = parseInt(element.dataset.col);
         
@@ -187,7 +192,7 @@ function handleTouchMove(e) {
     const touch = e.touches[0];
     const element = document.elementFromPoint(touch.clientX, touch.clientY);
     
-    if (element && element.classList.contains('cell')) {
+    if (element && element.classList.contains('cell') && element.dataset.row) {
         const row = parseInt(element.dataset.row);
         const col = parseInt(element.dataset.col);
         
@@ -368,12 +373,12 @@ function clearMessage() {
     messageEl.className = 'message';
 }
 
-// Reset puzzle
+// Initialize game on load
+initGame();
+
+// Reset puzzle - add listener after DOM is ready
 document.getElementById('reset-btn').addEventListener('click', () => {
     if (confirm('Are you sure you want to reset the puzzle?')) {
         initGame();
     }
 });
-
-// Initialize game on load
-initGame();
