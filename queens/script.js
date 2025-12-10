@@ -1,7 +1,7 @@
 // Game state
 let grid = [];
 let colorRegions = [];
-let lockedCells = [];  // Track cells with locked queens
+let lockedCells = new Set();  // Track cells with locked queens using "r,c" format for O(1) lookup
 const GRID_SIZE = 8;
 const MIN_REGION_SIZE = 6;
 const MAX_REGION_SIZE = 10;
@@ -25,7 +25,7 @@ const QUEEN = 2;   // ♛
 // Initialize game
 function initGame() {
     grid = Array(GRID_SIZE).fill(0).map(() => Array(GRID_SIZE).fill(EMPTY));
-    lockedCells = [];
+    lockedCells = new Set();
     generateColorRegions();
     placeInitialQueen();
     renderGrid();
@@ -135,7 +135,7 @@ function placeInitialQueen() {
         if (isValidQueenPlacement(r, c)) {
             // Place the queen and mark it as locked
             grid[r][c] = QUEEN;
-            lockedCells.push({r, c});
+            lockedCells.add(`${r},${c}`);
             break;
         }
     }
@@ -187,7 +187,7 @@ function renderGrid() {
             
             // Set cell content
             const state = grid[r][c];
-            const isLocked = lockedCells.some(cell => cell.r === r && cell.c === c);
+            const isLocked = lockedCells.has(`${r},${c}`);
             
             if (state === MARKED) {
                 cell.textContent = 'X';
@@ -234,7 +234,7 @@ function addBoldBorders(cell, r, c) {
 // Handle cell click - cycle through states
 function handleCellClick(r, c) {
     // Check if this cell has a locked queen
-    const isLocked = lockedCells.some(cell => cell.r === r && cell.c === c);
+    const isLocked = lockedCells.has(`${r},${c}`);
     if (isLocked) {
         showMessage('This queen is locked and cannot be changed!', 'error');
         setTimeout(clearMessage, 2000);
@@ -267,7 +267,7 @@ function handleCellClick(r, c) {
 function updateCell(r, c) {
     const cell = document.querySelector(`[data-row="${r}"][data-col="${c}"]`);
     const state = grid[r][c];
-    const isLocked = lockedCells.some(cell => cell.r === r && cell.c === c);
+    const isLocked = lockedCells.has(`${r},${c}`);
     
     cell.classList.remove('marked', 'queen', 'locked');
     
@@ -391,8 +391,9 @@ document.getElementById('reset-btn').addEventListener('click', () => {
         grid = Array(GRID_SIZE).fill(0).map(() => Array(GRID_SIZE).fill(EMPTY));
         
         // Restore locked queens
-        for (const lockedCell of lockedCells) {
-            grid[lockedCell.r][lockedCell.c] = QUEEN;
+        for (const key of lockedCells) {
+            const [r, c] = key.split(',').map(Number);
+            grid[r][c] = QUEEN;
         }
         
         renderGrid();
