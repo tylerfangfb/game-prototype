@@ -167,6 +167,10 @@ h1 {
     background-color: #b2ebf2 !important;
 }
 
+.cell.word-area {
+    background-color: #fafafa;
+}
+
 .cell.correct {
     background-color: #c8e6c9;
 }
