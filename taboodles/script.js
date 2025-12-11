@@ -40,6 +40,7 @@ let generatedImageUrl = null;
 let attemptsRemaining = 3;
 let gameActive = false;
 let huggingFaceToken = null; // Store token in memory only (not localStorage for security)
+let currentImageObjectURL = null; // Track current object URL for cleanup
 
 // Helper function for pluralization
 function pluralize(count, singular, plural = null) {
@@ -49,6 +50,12 @@ function pluralize(count, singular, plural = null) {
 
 // Initialize the game
 function initGame() {
+    // Clean up previous object URL to prevent memory leaks
+    if (currentImageObjectURL) {
+        URL.revokeObjectURL(currentImageObjectURL);
+        currentImageObjectURL = null;
+    }
+    
     // Select a random word set
     currentWordSet = wordSets[Math.floor(Math.random() * wordSets.length)];
     generatedImageUrl = null;
@@ -114,7 +121,7 @@ async function generateImage(prompt) {
     
     const API_URL = 'https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-2-1';
     const MAX_RETRIES = 3;
-    const RETRY_DELAY = 5000; // 5 seconds
+    const RETRY_DELAY = 5000; // 5 seconds (in milliseconds)
     
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
         try {
@@ -138,9 +145,9 @@ async function generateImage(prompt) {
                     // Handle model loading
                     if (response.status === 503 && errorData.error && errorData.error.includes('loading')) {
                         if (attempt < MAX_RETRIES) {
-                            const waitTime = errorData.estimated_time || (RETRY_DELAY / 1000);
+                            const waitTime = errorData.estimated_time ? errorData.estimated_time * 1000 : RETRY_DELAY;
                             document.getElementById('generate-btn').textContent = `Model loading... Retry ${attempt}/${MAX_RETRIES}`;
-                            await new Promise(resolve => setTimeout(resolve, Math.ceil(waitTime * 1000)));
+                            await new Promise(resolve => setTimeout(resolve, Math.ceil(waitTime)));
                             continue; // Retry
                         } else {
                             errorMessage = 'Model is still loading. Please try again in a moment.';
@@ -170,7 +177,14 @@ async function generateImage(prompt) {
             
             // Convert blob response to object URL
             const blob = await response.blob();
+            
+            // Clean up previous object URL before creating a new one
+            if (currentImageObjectURL) {
+                URL.revokeObjectURL(currentImageObjectURL);
+            }
+            
             const imageUrl = URL.createObjectURL(blob);
+            currentImageObjectURL = imageUrl;
             
             return imageUrl;
             
