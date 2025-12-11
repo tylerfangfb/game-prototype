@@ -147,6 +147,85 @@ h1 {
     border: 2px solid #ef5350;
 }
 
+/* Token Section */
+.token-section {
+    background: #e3f2fd;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    border: 2px solid #90caf9;
+}
+
+.token-section label {
+    display: block;
+    font-weight: bold;
+    color: #1565c0;
+    margin-bottom: 8px;
+    font-size: 1em;
+}
+
+.token-section input[type="password"] {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #90caf9;
+    border-radius: 8px;
+    font-size: 1em;
+    font-family: 'Courier New', monospace;
+    background: white;
+    transition: border-color 0.3s;
+    margin-bottom: 8px;
+}
+
+.token-section input[type="password"]:focus {
+    outline: none;
+    border-color: #1976d2;
+}
+
+.token-help {
+    font-size: 0.85em;
+    color: #1565c0;
+    margin-bottom: 8px;
+}
+
+.token-help a {
+    color: #1976d2;
+    text-decoration: underline;
+    font-weight: 600;
+}
+
+.token-help a:hover {
+    color: #0d47a1;
+}
+
+.token-status {
+    font-size: 0.9em;
+    font-weight: 600;
+    padding: 8px;
+    border-radius: 5px;
+    margin-bottom: 8px;
+    text-align: center;
+    min-height: 20px;
+}
+
+.token-status.saved {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.token-status.error {
+    background: #ffebee;
+    color: #c62828;
+}
+
+.token-warning {
+    font-size: 0.8em;
+    color: #f57c00;
+    background: #fff3e0;
+    padding: 8px;
+    border-radius: 5px;
+    border-left: 3px solid #ff9800;
+}
+
 /* Prompt Section */
 .prompt-section {
     margin-bottom: 20px;
@@ -376,5 +455,17 @@ input[type="text"]:focus {
     
     button {
         width: 100%;
+    }
+    
+    .token-section {
+        padding: 12px;
+    }
+    
+    .token-help {
+        font-size: 0.8em;
+    }
+    
+    .token-warning {
+        font-size: 0.75em;
     }
 }

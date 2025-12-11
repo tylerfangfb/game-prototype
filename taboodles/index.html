@@ -27,6 +27,18 @@
                             <div id="forbidden-words" class="forbidden-words"></div>
                         </div>
                         
+                        <div class="token-section">
+                            <label for="hf-token-input">Hugging Face API Token:</label>
+                            <input type="password" id="hf-token-input" placeholder="Enter your Hugging Face token...">
+                            <div class="token-help">
+                                <span>Get your free token at <a href="https://huggingface.co/settings/tokens" target="_blank" rel="noopener noreferrer">huggingface.co/settings/tokens</a></span>
+                            </div>
+                            <div id="token-status" class="token-status"></div>
+                            <div class="token-warning">
+                                ⚠️ Keep your token private. Never share it with others.
+                            </div>
+                        </div>
+                        
                         <div class="prompt-section">
                             <label for="prompt-input">Generate Image Prompt:</label>
                             <textarea id="prompt-input" placeholder="Describe the image you want to generate (without using target or forbidden words)..." rows="4"></textarea>
