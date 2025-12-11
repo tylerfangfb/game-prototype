@@ -40,6 +40,12 @@ let generatedImageUrl = null;
 let attemptsRemaining = 3;
 let gameActive = false;
 
+// Helper function for pluralization
+function pluralize(count, singular, plural = null) {
+    if (count === 1) return singular;
+    return plural || singular + 's';
+}
+
 // Initialize the game
 function initGame() {
     // Select a random word set
@@ -194,7 +200,7 @@ document.getElementById('share-btn').addEventListener('click', function() {
     if (!generatedImageUrl) return;
     
     // Generate a fake share link for this prototype
-    const shareLink = `https://taboodles.game/share/${Math.random().toString(36).substr(2, 9)}`;
+    const shareLink = `https://taboodles.game/share/${Math.random().toString(36).substring(2, 11)}`;
     
     // Simulate sharing - in this prototype, directly activate Player B's screen
     document.getElementById('waiting-message').style.display = 'none';
@@ -204,8 +210,20 @@ document.getElementById('share-btn').addEventListener('click', function() {
     attemptsRemaining = 3;
     document.getElementById('attempts-count').textContent = attemptsRemaining;
     
-    // Show feedback to Player A
-    alert(`Share link generated: ${shareLink}\n\n(In this prototype, Player B's screen is automatically updated)`);
+    // Show share link feedback (in a real app, this would be copied to clipboard or shown in a modal)
+    const feedbackMsg = `Share link generated: ${shareLink}\n\n(In this prototype, Player B's screen is automatically updated)`;
+    console.log(feedbackMsg);
+    
+    // Create a temporary message overlay for better UX (replacing alert)
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); z-index: 1000; max-width: 400px; text-align: center;';
+    overlay.innerHTML = `
+        <h3 style="margin: 0 0 15px 0; color: #667eea;">Share Link Generated!</h3>
+        <p style="margin: 0 0 10px 0; word-break: break-all; color: #666;">${shareLink}</p>
+        <p style="margin: 0 0 20px 0; font-size: 0.9em; color: #999;">(In this prototype, Player B's screen is automatically updated)</p>
+        <button onclick="this.parentElement.remove()" style="padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600;">OK</button>
+    `;
+    document.body.appendChild(overlay);
 });
 
 // Handle guess submission for Player B
@@ -240,7 +258,7 @@ document.getElementById('submit-guess-btn').addEventListener('click', function()
         gameActive = false;
         document.getElementById('submit-guess-btn').disabled = true;
     } else {
-        feedbackElement.textContent = `❌ Incorrect! Try again. ${attemptsRemaining} attempt${attemptsRemaining > 1 ? 's' : ''} remaining.`;
+        feedbackElement.textContent = `❌ Incorrect! Try again. ${attemptsRemaining} ${pluralize(attemptsRemaining, 'attempt')} remaining.`;
         feedbackElement.className = 'message error';
         document.getElementById('guess-input').value = '';
         document.getElementById('guess-input').focus();
