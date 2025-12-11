@@ -140,7 +140,15 @@ async function generateImage(prompt) {
             throw new Error(`Failed to generate image: ${response.status} ${response.statusText}`);
         }
         
-        const blob = await response.blob();
+        const result = await response.json();
+        
+        // Extract the image URL from the response
+        // The response contains an array of images with base64-encoded data URLs
+        if (result.images && result.images.length > 0 && result.images[0].url) {
+            return result.images[0].url; // This is already a data URL (data:image/jpeg;base64,...)
+        } else {
+            throw new Error('No image found in response');
+        }
         
         // Clean up previous object URL before creating a new one
         if (currentImageObjectURL) {
