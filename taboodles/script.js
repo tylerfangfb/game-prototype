@@ -34,6 +34,9 @@ const wordSets = [
     }
 ];
 
+// Constants
+const HUGGINGFACE_API_URL = 'https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-2-1';
+
 // Game state
 let currentWordSet = null;
 let generatedImageUrl = null;
@@ -119,13 +122,12 @@ async function generateImage(prompt) {
     document.getElementById('generate-btn').disabled = true;
     document.getElementById('generate-btn').textContent = 'Generating...';
     
-    const API_URL = 'https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-2-1';
     const MAX_RETRIES = 3;
     const RETRY_DELAY = 5000; // 5 seconds (in milliseconds)
     
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
         try {
-            const response = await fetch(API_URL, {
+            const response = await fetch(HUGGINGFACE_API_URL, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${huggingFaceToken}`,
@@ -213,18 +215,15 @@ function displayImage(imageUrl) {
 
 // Test if Hugging Face token is valid
 async function testHuggingFaceToken(token) {
-    const API_URL = 'https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-2-1';
-    
     try {
-        const response = await fetch(API_URL, {
+        const response = await fetch(HUGGINGFACE_API_URL, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({ 
-                inputs: 'test',
-                options: { wait_for_model: false } // Don't wait for model to load, just test auth
+                inputs: 'test'
             })
         });
         
