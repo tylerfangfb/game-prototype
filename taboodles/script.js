@@ -34,6 +34,8 @@ const wordSets = [
     }
 ];
 
+import { InferenceClient } from "@huggingface/inference";
+
 // Game state
 let currentWordSet = null;
 let generatedImageUrl = null;
@@ -121,7 +123,7 @@ async function generateImage(prompt) {
     
     try {
         // Use InferenceClient exactly as shown in Hugging Face docs
-        const client = new window.InferenceClient(huggingFaceToken);
+        const client = new InferenceClient(huggingFaceToken);
         
         const blob = await client.textToImage({
             provider: "auto",
@@ -161,30 +163,34 @@ function displayImage(imageUrl) {
 
 // Test if Hugging Face token is valid
 async function testHuggingFaceToken(token) {
+    const API_URL = "https://huggingface.co/api/whoami-v2";
     try {
-        const client = new window.InferenceClient(token);
-        
-        // Make a simple test call to verify token
-        await client.textToImage({
-            provider: "auto",
-            model: "stabilityai/stable-diffusion-3.5-medium",
-            inputs: "test",
-            parameters: { num_inference_steps: 1 }
+        const response = await fetch(API_URL, {
+            method: 'GET',
+            headers: {
+                // The Authorization header must use the "Bearer" scheme followed by the token.
+                'Authorization': `Bearer ${token}` 
+            }
         });
-        
-        return { valid: true, message: 'Token is valid' };
-        
-    } catch (error) {
-        // Check error message for specific issues
-        if (error.message && (error.message.includes('401') || error.message.includes('403') || error.message.includes('Unauthorized'))) {
+
+        // Check if the response was successful (status code 200-299)
+        if (response.ok) {
+            const userData = await response.json();
+            console.log("✅ Token is valid! Authenticated user info:", userData);
+            return { valid: true, message: 'Token is valid' };
+        } else {
+            // Handle specific HTTP error codes
+            if (response.status === 401 || response.status === 403) {
+                console.error(`❌ Authentication failed. Status: ${response.status}. The token provided is likely invalid or lacks necessary permissions.`);
+            } else {
+                console.error(`❌ API request failed with status: ${response.status}`);
+            }
             return { valid: false, message: 'Invalid token' };
         }
-        if (error.message && error.message.includes('429')) {
-            return { valid: true, message: 'Token valid but rate limited' };
-        }
-        
-        // If we get here, assume token is probably valid but something else went wrong
-        return { valid: true, message: 'Token appears valid' };
+    } catch (error) {
+        // Handle network errors (e.g., no internet connection, DNS issues)
+        console.error("❌ A network error occurred while trying to verify the token:", error.message);
+        return { valid: false, message: 'Invalid token' };
     }
 }
 
