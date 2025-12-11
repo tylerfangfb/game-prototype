@@ -36,6 +36,7 @@ const wordSets = [
 
 // Constants
 const HUGGINGFACE_API_URL = 'https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-2-1';
+const MODEL_LOADING_MESSAGE = 'Token verified! Model is loading (this is normal). You can proceed - it will be ready shortly.';
 
 // Game state
 let currentWordSet = null;
@@ -125,8 +126,12 @@ async function generateImage(prompt) {
     const MAX_RETRIES = 3;
     const RETRY_DELAY = 5000; // 5 seconds (in milliseconds)
     
+    console.log('Starting image generation with prompt:', prompt);
+    
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
         try {
+            console.log(`Attempt ${attempt}/${MAX_RETRIES}: Sending request to Hugging Face API`);
+            
             const response = await fetch(HUGGINGFACE_API_URL, {
                 method: 'POST',
                 headers: {
@@ -136,6 +141,8 @@ async function generateImage(prompt) {
                 body: JSON.stringify({ inputs: prompt })
             });
             
+            console.log(`Response status: ${response.status}`);
+            
             // Handle different response statuses
             if (!response.ok) {
                 const contentType = response.headers.get('content-type');
@@ -143,11 +150,13 @@ async function generateImage(prompt) {
                 
                 if (contentType && contentType.includes('application/json')) {
                     const errorData = await response.json();
+                    console.log('Error response data:', errorData);
                     
                     // Handle model loading
                     if (response.status === 503 && errorData.error && errorData.error.includes('loading')) {
                         if (attempt < MAX_RETRIES) {
                             const waitTime = errorData.estimated_time ? errorData.estimated_time * 1000 : RETRY_DELAY;
+                            console.log(`Model is loading. Waiting ${waitTime}ms before retry...`);
                             document.getElementById('generate-btn').textContent = `Model loading... Retry ${attempt}/${MAX_RETRIES}`;
                             await new Promise(resolve => setTimeout(resolve, Math.ceil(waitTime)));
                             continue; // Retry
@@ -169,15 +178,18 @@ async function generateImage(prompt) {
                     }
                 } else {
                     const errorText = await response.text();
+                    console.log('Error response text:', errorText);
                     if (errorText) {
                         errorMessage = errorText;
                     }
                 }
                 
+                console.error('Image generation error:', errorMessage);
                 throw new Error(errorMessage);
             }
             
             // Convert blob response to object URL
+            console.log('Successfully received image, creating object URL');
             const blob = await response.blob();
             
             // Clean up previous object URL before creating a new one
@@ -188,9 +200,11 @@ async function generateImage(prompt) {
             const imageUrl = URL.createObjectURL(blob);
             currentImageObjectURL = imageUrl;
             
+            console.log('Image generated successfully');
             return imageUrl;
             
         } catch (error) {
+            console.error(`Attempt ${attempt} failed:`, error);
             // If it's the last attempt or not a model loading error, throw
             if (attempt === MAX_RETRIES || !error.message.includes('loading')) {
                 throw error;
@@ -227,17 +241,35 @@ async function testHuggingFaceToken(token) {
             })
         });
         
-        // If we get 401 or 403, token is invalid
-        if (response.status === 401 || response.status === 403) {
-            return { valid: false, message: 'Invalid token' };
+        // Handle different response statuses
+        if (response.status === 200) {
+            // Token valid, model ready
+            return { valid: true, status: 'ready', message: 'Token verified! Model is ready.' };
+        } else if (response.status === 503) {
+            // Token valid, model loading
+            return { valid: true, status: 'loading', message: MODEL_LOADING_MESSAGE };
+        } else if (response.status === 401 || response.status === 403) {
+            // Invalid token
+            return { valid: false, status: 'invalid', message: 'Invalid token. Please check your token.' };
+        } else if (response.status === 429) {
+            // Valid token, rate limited
+            return { valid: true, status: 'rate_limited', message: 'Token is valid but rate limit reached. Wait a moment before generating.' };
+        } else {
+            // Other error - try to get error message
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+                const data = await response.json();
+                if (data.error) {
+                    return { valid: false, status: 'error', message: data.error };
+                }
+            }
+            return { valid: false, status: 'error', message: `API Error (${response.status})` };
         }
-        
-        // Any other status (including 503 for model loading) means token is valid
-        return { valid: true, message: 'Token is valid' };
         
     } catch (error) {
         // Network error or other issue
-        return { valid: false, message: 'Could not verify token. Check your connection.' };
+        console.error('Token validation error:', error);
+        return { valid: false, status: 'network_error', message: 'Could not verify token. Check your internet connection.' };
     }
 }
 
@@ -265,12 +297,23 @@ async function saveAndTestToken() {
     
     if (result.valid) {
         huggingFaceToken = token;
-        statusElement.innerHTML = '✅ Token saved & verified! Ready to generate images.';
+        
+        // Display appropriate message based on the result message
+        statusElement.innerHTML = `✅ ${result.message}`;
         statusElement.className = 'token-status saved';
         saveBtn.textContent = 'Token Verified ✓';
     } else {
         huggingFaceToken = null;
-        statusElement.innerHTML = `❌ ${result.message}. Please check your token.`;
+        
+        // Display appropriate error message based on status
+        if (result.status === 'invalid') {
+            statusElement.innerHTML = '❌ Invalid token. Please check your token.';
+        } else if (result.status === 'network_error') {
+            statusElement.innerHTML = '⚠️ Could not verify token. Check your internet connection.';
+        } else {
+            statusElement.innerHTML = `❌ ${result.message}`;
+        }
+        
         statusElement.className = 'token-status error';
         saveBtn.textContent = 'Save & Test Token';
     }
