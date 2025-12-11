@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Taboodles - Image Guessing Game</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <!-- Player A Screen -->
+        <div class="iphone-frame">
+            <div class="iphone-notch"></div>
+            <div class="iphone-screen">
+                <div class="container">
+                    <h1>Taboodles</h1>
+                    <div class="player-label">Player A</div>
+                    
+                    <div id="player-a-content">
+                        <div class="word-section">
+                            <div class="target-word-label">Target Word:</div>
+                            <div id="target-word" class="target-word"></div>
+                        </div>
+                        
+                        <div class="forbidden-section">
+                            <div class="forbidden-label">Forbidden Words:</div>
+                            <div id="forbidden-words" class="forbidden-words"></div>
+                        </div>
+                        
+                        <div class="prompt-section">
+                            <label for="prompt-input">Generate Image Prompt:</label>
+                            <textarea id="prompt-input" placeholder="Describe the image you want to generate (without using target or forbidden words)..." rows="4"></textarea>
+                            <div id="prompt-error" class="error-message"></div>
+                        </div>
+                        
+                        <div class="image-display" id="generated-image-container">
+                            <div id="image-placeholder">Your generated image will appear here</div>
+                            <img id="generated-image" style="display: none;" alt="Generated image">
+                        </div>
+                        
+                        <div class="controls">
+                            <button id="generate-btn">Generate Image</button>
+                            <button id="share-btn" style="display: none;">Share with Player B</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Player B Screen -->
+        <div class="iphone-frame">
+            <div class="iphone-notch"></div>
+            <div class="iphone-screen">
+                <div class="container">
+                    <h1>Taboodles</h1>
+                    <div class="player-label">Player B</div>
+                    
+                    <div id="player-b-content">
+                        <div id="waiting-message" class="waiting-message">
+                            Waiting for Player A to share an image...
+                        </div>
+                        
+                        <div id="player-b-game" style="display: none;">
+                            <div class="shared-image-display">
+                                <img id="shared-image" alt="Shared image">
+                            </div>
+                            
+                            <div class="guess-section">
+                                <label for="guess-input">Guess the Target Word:</label>
+                                <input type="text" id="guess-input" placeholder="Enter your guess...">
+                                <div class="attempts-remaining">Attempts remaining: <span id="attempts-count">3</span></div>
+                                <button id="submit-guess-btn">Submit Guess</button>
+                            </div>
+                            
+                            <div id="guess-feedback" class="message"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
