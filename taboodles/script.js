@@ -34,9 +34,6 @@ const wordSets = [
     }
 ];
 
-// Constants
-const HUGGINGFACE_API_URL = 'https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-2-1';
-
 // Game state
 let currentWordSet = null;
 let generatedImageUrl = null;
@@ -113,72 +110,30 @@ function validatePrompt(prompt) {
 
 // Generate image using Hugging Face Inference API
 async function generateImage(prompt) {
-    // Check if token is provided
     if (!huggingFaceToken) {
         throw new Error('Please enter your Hugging Face API token first.');
     }
     
-    // Show loading state
     document.getElementById('generate-btn').disabled = true;
     document.getElementById('generate-btn').textContent = 'Generating...';
     
     const MAX_RETRIES = 3;
-    const RETRY_DELAY = 5000; // 5 seconds (in milliseconds)
+    const RETRY_DELAY = 5000;
     
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
         try {
-            const response = await fetch(HUGGINGFACE_API_URL, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${huggingFaceToken}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ inputs: prompt })
-            });
+            // Initialize the Hugging Face Inference client
+            const hf = new window.HfInference(huggingFaceToken);
             
-            // Handle different response statuses
-            if (!response.ok) {
-                const contentType = response.headers.get('content-type');
-                let errorMessage = `API Error (${response.status})`;
-                
-                if (contentType && contentType.includes('application/json')) {
-                    const errorData = await response.json();
-                    
-                    // Handle model loading
-                    if (response.status === 503 && errorData.error && errorData.error.includes('loading')) {
-                        if (attempt < MAX_RETRIES) {
-                            const waitTime = errorData.estimated_time ? errorData.estimated_time * 1000 : RETRY_DELAY;
-                            document.getElementById('generate-btn').textContent = `Model loading... Retry ${attempt}/${MAX_RETRIES}`;
-                            await new Promise(resolve => setTimeout(resolve, Math.ceil(waitTime)));
-                            continue; // Retry
-                        } else {
-                            errorMessage = 'Model is still loading. Please try again in a moment.';
-                        }
-                    }
-                    // Handle invalid token
-                    else if (response.status === 401 || response.status === 403) {
-                        errorMessage = 'Invalid API token. Please check your Hugging Face token.';
-                    }
-                    // Handle rate limit
-                    else if (response.status === 429) {
-                        errorMessage = 'Rate limit exceeded. Please wait a moment and try again.';
-                    }
-                    // Generic error with message
-                    else if (errorData.error) {
-                        errorMessage = errorData.error;
-                    }
-                } else {
-                    const errorText = await response.text();
-                    if (errorText) {
-                        errorMessage = errorText;
-                    }
+            // Generate image using the new Inference Providers API
+            const blob = await hf.textToImage({
+                provider: "fal-ai",
+                model: "stabilityai/stable-diffusion-3.5-medium",
+                inputs: prompt,
+                parameters: {
+                    num_inference_steps: 5
                 }
-                
-                throw new Error(errorMessage);
-            }
-            
-            // Convert blob response to object URL
-            const blob = await response.blob();
+            });
             
             // Clean up previous object URL before creating a new one
             if (currentImageObjectURL) {
@@ -191,9 +146,19 @@ async function generateImage(prompt) {
             return imageUrl;
             
         } catch (error) {
-            // If it's the last attempt or not a model loading error, throw
-            if (attempt === MAX_RETRIES || !error.message.includes('loading')) {
-                throw error;
+            console.error(`Generation attempt ${attempt} failed:`, error);
+            
+            // Check for specific error types
+            if (error.message && error.message.includes('429')) {
+                throw new Error('Rate limit exceeded. Please wait a moment and try again.');
+            } else if (error.message && (error.message.includes('401') || error.message.includes('403') || error.message.includes('Invalid token'))) {
+                throw new Error('Invalid API token. Please check your Hugging Face token.');
+            } else if (attempt < MAX_RETRIES) {
+                document.getElementById('generate-btn').textContent = `Retrying... (${attempt}/${MAX_RETRIES})`;
+                await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+                continue;
+            } else {
+                throw new Error(error.message || 'Failed to generate image. Please try again.');
             }
         }
     }
@@ -216,28 +181,32 @@ function displayImage(imageUrl) {
 // Test if Hugging Face token is valid
 async function testHuggingFaceToken(token) {
     try {
-        const response = await fetch(HUGGINGFACE_API_URL, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ 
-                inputs: 'test'
-            })
+        const hf = new window.HfInference(token);
+        
+        // Try a simple test request
+        await hf.textToImage({
+            provider: "fal-ai",
+            model: "stabilityai/stable-diffusion-3.5-medium",
+            inputs: "test",
+            parameters: {
+                num_inference_steps: 1
+            }
         });
         
-        // If we get 401 or 403, token is invalid
-        if (response.status === 401 || response.status === 403) {
-            return { valid: false, message: 'Invalid token' };
-        }
-        
-        // Any other status (including 503 for model loading) means token is valid
-        return { valid: true, message: 'Token is valid' };
+        return { valid: true, message: 'Token is valid and model is ready!' };
         
     } catch (error) {
-        // Network error or other issue
-        return { valid: false, message: 'Could not verify token. Check your connection.' };
+        console.error('Token validation error:', error);
+        
+        // Check error types
+        if (error.message && (error.message.includes('401') || error.message.includes('403') || error.message.includes('Invalid'))) {
+            return { valid: false, message: 'Invalid token' };
+        } else if (error.message && error.message.includes('429')) {
+            // Rate limited but token is valid
+            return { valid: true, message: 'Token is valid (rate limit reached during test)' };
+        } else {
+            return { valid: false, message: `Could not verify: ${error.message || 'Unknown error'}` };
+        }
     }
 }
 
