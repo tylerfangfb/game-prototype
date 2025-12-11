@@ -34,8 +34,6 @@ const wordSets = [
     }
 ];
 
-import { InferenceClient } from "@huggingface/inference";
-
 // Game state
 let currentWordSet = null;
 let generatedImageUrl = null;
