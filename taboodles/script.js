@@ -34,6 +34,9 @@ const wordSets = [
     }
 ];
 
+// Constants
+const HUGGINGFACE_API_URL = 'https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-2-1';
+
 // Game state
 let currentWordSet = null;
 let generatedImageUrl = null;
@@ -119,13 +122,12 @@ async function generateImage(prompt) {
     document.getElementById('generate-btn').disabled = true;
     document.getElementById('generate-btn').textContent = 'Generating...';
     
-    const API_URL = 'https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-2-1';
     const MAX_RETRIES = 3;
     const RETRY_DELAY = 5000; // 5 seconds (in milliseconds)
     
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
         try {
-            const response = await fetch(API_URL, {
+            const response = await fetch(HUGGINGFACE_API_URL, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${huggingFaceToken}`,
@@ -211,20 +213,103 @@ function displayImage(imageUrl) {
     document.getElementById('generate-btn').disabled = false;
 }
 
-// Handle token input changes
+// Test if Hugging Face token is valid
+async function testHuggingFaceToken(token) {
+    try {
+        const response = await fetch(HUGGINGFACE_API_URL, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ 
+                inputs: 'test'
+            })
+        });
+        
+        // If we get 401 or 403, token is invalid
+        if (response.status === 401 || response.status === 403) {
+            return { valid: false, message: 'Invalid token' };
+        }
+        
+        // Any other status (including 503 for model loading) means token is valid
+        return { valid: true, message: 'Token is valid' };
+        
+    } catch (error) {
+        // Network error or other issue
+        return { valid: false, message: 'Could not verify token. Check your connection.' };
+    }
+}
+
+// Handle saving and testing token
+async function saveAndTestToken() {
+    const tokenInput = document.getElementById('hf-token-input');
+    const token = tokenInput.value.trim();
+    const statusElement = document.getElementById('token-status');
+    const saveBtn = document.getElementById('save-token-btn');
+    
+    if (!token) {
+        statusElement.innerHTML = '❌ Please enter a token first';
+        statusElement.className = 'token-status error';
+        return;
+    }
+    
+    // Show testing state
+    statusElement.innerHTML = '⏳ Testing token...';
+    statusElement.className = 'token-status testing';
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Testing...';
+    
+    // Test the token
+    const result = await testHuggingFaceToken(token);
+    
+    if (result.valid) {
+        huggingFaceToken = token;
+        statusElement.innerHTML = '✅ Token saved & verified! Ready to generate images.';
+        statusElement.className = 'token-status saved';
+        saveBtn.textContent = 'Token Verified ✓';
+    } else {
+        huggingFaceToken = null;
+        statusElement.innerHTML = `❌ ${result.message}. Please check your token.`;
+        statusElement.className = 'token-status error';
+        saveBtn.textContent = 'Save & Test Token';
+    }
+    
+    saveBtn.disabled = false;
+}
+
+// Handle token input changes (reset validation status)
 document.getElementById('hf-token-input').addEventListener('input', function() {
     const token = this.value.trim();
     const statusElement = document.getElementById('token-status');
+    const saveBtn = document.getElementById('save-token-btn');
     
-    if (token) {
-        huggingFaceToken = token;
-        statusElement.textContent = '✓ Token saved in memory (secure)';
-        statusElement.className = 'token-status saved';
-    } else {
+    if (!token) {
         huggingFaceToken = null;
         statusElement.textContent = '';
-        statusElement.className = 'token-status';
+        statusElement.className = 'token-status empty';
+        saveBtn.textContent = 'Save & Test Token';
+    } else {
+        // Show that token needs to be saved/tested
+        if (huggingFaceToken !== token) {
+            statusElement.innerHTML = 'ℹ️ Click "Save & Test Token" or press Enter to verify';
+            statusElement.className = 'token-status testing';
+            saveBtn.textContent = 'Save & Test Token';
+        }
     }
+});
+
+// Handle Enter key in token input
+document.getElementById('hf-token-input').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        saveAndTestToken();
+    }
+});
+
+// Handle save token button click
+document.getElementById('save-token-btn').addEventListener('click', function() {
+    saveAndTestToken();
 });
 
 // Handle generate button click
@@ -234,9 +319,11 @@ document.getElementById('generate-btn').addEventListener('click', async function
     
     // Check if token is entered
     if (!huggingFaceToken) {
-        errorElement.textContent = '⚠️ Please enter your Hugging Face API token first!';
-        // Scroll to token input
-        document.getElementById('hf-token-input').focus();
+        errorElement.textContent = '⚠️ Please save and verify your Hugging Face API token first!';
+        // Scroll to token input and highlight it
+        const tokenInput = document.getElementById('hf-token-input');
+        tokenInput.focus();
+        tokenInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
         return;
     }
     

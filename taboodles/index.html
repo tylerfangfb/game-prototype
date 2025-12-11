@@ -29,7 +29,10 @@
                         
                         <div class="token-section">
                             <label for="hf-token-input">Hugging Face API Token:</label>
-                            <input type="password" id="hf-token-input" placeholder="Enter your Hugging Face token...">
+                            <div class="token-input-group">
+                                <input type="password" id="hf-token-input" placeholder="Enter your Hugging Face token...">
+                                <button id="save-token-btn" class="token-btn">Save & Test Token</button>
+                            </div>
                             <div class="token-help">
                                 <span>Get your free token at <a href="https://huggingface.co/settings/tokens" target="_blank" rel="noopener noreferrer">huggingface.co/settings/tokens</a></span>
                             </div>
