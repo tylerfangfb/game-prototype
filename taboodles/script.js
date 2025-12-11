@@ -36,6 +36,7 @@ const wordSets = [
 
 // Constants
 const HUGGINGFACE_API_URL = 'https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-2-1';
+const MODEL_LOADING_MESSAGE = 'Token verified! Model is loading (this is normal). You can proceed - it will be ready shortly.';
 
 // Game state
 let currentWordSet = null;
@@ -165,7 +166,7 @@ async function generateImage(prompt) {
                     }
                     // Handle invalid token
                     else if (response.status === 401 || response.status === 403) {
-                        errorMessage = 'Invalid API token. Please check your Hugging Face token and verify it again.';
+                        errorMessage = 'Invalid API token. Please check your Hugging Face token.';
                     }
                     // Handle rate limit
                     else if (response.status === 429) {
@@ -246,15 +247,7 @@ async function testHuggingFaceToken(token) {
             return { valid: true, status: 'ready', message: 'Token verified! Model is ready.' };
         } else if (response.status === 503) {
             // Token valid, model loading
-            const contentType = response.headers.get('content-type');
-            if (contentType && contentType.includes('application/json')) {
-                const data = await response.json();
-                if (data.error && data.error.includes('loading')) {
-                    return { valid: true, status: 'loading', message: 'Token verified! Model is loading (this is normal). You can proceed - it will be ready in ~20 seconds.' };
-                }
-            }
-            // Generic 503 error
-            return { valid: true, status: 'loading', message: 'Token verified! Model is loading. You can proceed - it will be ready shortly.' };
+            return { valid: true, status: 'loading', message: MODEL_LOADING_MESSAGE };
         } else if (response.status === 401 || response.status === 403) {
             // Invalid token
             return { valid: false, status: 'invalid', message: 'Invalid token. Please check your token.' };
@@ -305,25 +298,10 @@ async function saveAndTestToken() {
     if (result.valid) {
         huggingFaceToken = token;
         
-        // Display appropriate message based on status
-        if (result.status === 'ready') {
-            statusElement.innerHTML = '✅ Token verified! Model is ready.';
-            statusElement.className = 'token-status saved';
-            saveBtn.textContent = 'Token Verified ✓';
-        } else if (result.status === 'loading') {
-            statusElement.innerHTML = '✅ Token verified! Model is loading (this is normal). You can proceed - it will be ready in ~20 seconds.';
-            statusElement.className = 'token-status saved';
-            saveBtn.textContent = 'Token Verified ✓';
-        } else if (result.status === 'rate_limited') {
-            statusElement.innerHTML = '✅ Token is valid but rate limit reached. Wait a moment before generating.';
-            statusElement.className = 'token-status saved';
-            saveBtn.textContent = 'Token Verified ✓';
-        } else {
-            // Generic success message for other valid states
-            statusElement.innerHTML = `✅ ${result.message}`;
-            statusElement.className = 'token-status saved';
-            saveBtn.textContent = 'Token Verified ✓';
-        }
+        // Display appropriate message based on the result message
+        statusElement.innerHTML = `✅ ${result.message}`;
+        statusElement.className = 'token-status saved';
+        saveBtn.textContent = 'Token Verified ✓';
     } else {
         huggingFaceToken = null;
         
