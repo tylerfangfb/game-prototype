@@ -23,6 +23,47 @@ const solution = [
 let currentPuzzle = JSON.parse(JSON.stringify(initialPuzzle));
 let selectedCell = null;
 
+// Timer state
+let timerInterval = null;
+let startTime = null;
+let elapsedTime = 0;
+
+// Timer functions
+function startTimer() {
+    if (timerInterval) {
+        clearInterval(timerInterval);
+    }
+    startTime = Date.now() - elapsedTime;
+    timerInterval = setInterval(updateTimer, 1000);
+}
+
+function stopTimer() {
+    if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+    }
+}
+
+function resetTimer() {
+    stopTimer();
+    elapsedTime = 0;
+    updateTimerDisplay(0);
+}
+
+function updateTimer() {
+    elapsedTime = Date.now() - startTime;
+    updateTimerDisplay(elapsedTime);
+}
+
+function updateTimerDisplay(milliseconds) {
+    const totalSeconds = Math.floor(milliseconds / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    
+    const display = document.getElementById('timer-display');
+    display.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+}
+
 // Initialize the game
 function initGame() {
     const grid = document.getElementById('sudoku-grid');
@@ -50,6 +91,10 @@ function initGame() {
             grid.appendChild(cell);
         }
     }
+    
+    // Start the timer
+    resetTimer();
+    startTimer();
 }
 
 // Select a cell
@@ -124,6 +169,7 @@ function checkCompletion() {
     }
     
     if (isCorrect) {
+        stopTimer();
         showMessage('🎉 Congratulations! You solved the puzzle!', 'success');
     } else {
         showMessage('Puzzle complete, but there are some mistakes. Keep trying!', 'error');

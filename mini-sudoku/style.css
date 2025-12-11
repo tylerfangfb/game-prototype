@@ -84,6 +84,41 @@ h1 {
     font-size: 0.9em;
 }
 
+/* Timer Pill */
+.timer-pill {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 8px 20px;
+    border-radius: 20px;
+    display: inline-block;
+    font-size: 1.1em;
+    font-weight: 600;
+    margin: 0 auto 20px;
+    box-shadow: 0 4px 10px rgba(102, 126, 234, 0.3);
+    text-align: center;
+    width: fit-content;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+}
+
+.timer-pill::before {
+    content: '⏱️';
+    font-size: 1.2em;
+}
+
+#timer {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+#timer-display {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 1px;
+}
+
 #sudoku-grid {
     display: grid;
     grid-template-columns: repeat(6, 1fr);
