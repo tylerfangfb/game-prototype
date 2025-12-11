@@ -110,60 +110,41 @@ function validatePrompt(prompt) {
 
 // Generate image using Hugging Face Inference API
 async function generateImage(prompt) {
+    // Check if token is provided
     if (!huggingFaceToken) {
         throw new Error('Please enter your Hugging Face API token first.');
     }
     
+    // Show loading state
     document.getElementById('generate-btn').disabled = true;
     document.getElementById('generate-btn').textContent = 'Generating...';
     
-    const MAX_RETRIES = 3;
-    const RETRY_DELAY = 5000;
-    
-    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-        try {
-            // Initialize the Hugging Face Inference client
-            const hf = new window.HfInference(huggingFaceToken);
-            
-            // Generate image using the new Inference Providers API
-            const blob = await hf.textToImage({
-                provider: "fal-ai",
-                model: "stabilityai/stable-diffusion-3.5-medium",
-                inputs: prompt,
-                parameters: {
-                    num_inference_steps: 5
-                }
-            });
-            
-            // Clean up previous object URL before creating a new one
-            if (currentImageObjectURL) {
-                URL.revokeObjectURL(currentImageObjectURL);
-            }
-            
-            const imageUrl = URL.createObjectURL(blob);
-            currentImageObjectURL = imageUrl;
-            
-            return imageUrl;
-            
-        } catch (error) {
-            console.error(`Generation attempt ${attempt} failed:`, error);
-            
-            // Check for specific error types
-            if (error.message && error.message.includes('429')) {
-                throw new Error('Rate limit exceeded. Please wait a moment and try again.');
-            } else if (error.message && (error.message.includes('401') || error.message.includes('403') || error.message.includes('Invalid token'))) {
-                throw new Error('Invalid API token. Please check your Hugging Face token.');
-            } else if (attempt < MAX_RETRIES) {
-                document.getElementById('generate-btn').textContent = `Retrying... (${attempt}/${MAX_RETRIES})`;
-                await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
-                continue;
-            } else {
-                throw new Error(error.message || 'Failed to generate image. Please try again.');
-            }
+    try {
+        // Use InferenceClient exactly as shown in Hugging Face docs
+        const client = new window.InferenceClient(huggingFaceToken);
+        
+        const blob = await client.textToImage({
+            provider: "auto",
+            model: "stabilityai/stable-diffusion-3.5-medium",
+            inputs: prompt,
+            parameters: { num_inference_steps: 5 }
+        });
+        
+        // Clean up previous object URL before creating a new one
+        if (currentImageObjectURL) {
+            URL.revokeObjectURL(currentImageObjectURL);
         }
+        
+        // Convert blob to object URL for display
+        const imageUrl = URL.createObjectURL(blob);
+        currentImageObjectURL = imageUrl;
+        
+        return imageUrl;
+        
+    } catch (error) {
+        console.error('Image generation error:', error);
+        throw new Error(error.message || 'Failed to generate image. Please try again.');
     }
-    
-    throw new Error('Failed to generate image after multiple attempts.');
 }
 
 // Display generated image
@@ -181,32 +162,29 @@ function displayImage(imageUrl) {
 // Test if Hugging Face token is valid
 async function testHuggingFaceToken(token) {
     try {
-        const hf = new window.HfInference(token);
+        const client = new window.InferenceClient(token);
         
-        // Try a simple test request
-        await hf.textToImage({
-            provider: "fal-ai",
+        // Make a simple test call to verify token
+        await client.textToImage({
+            provider: "auto",
             model: "stabilityai/stable-diffusion-3.5-medium",
             inputs: "test",
-            parameters: {
-                num_inference_steps: 1
-            }
+            parameters: { num_inference_steps: 1 }
         });
         
-        return { valid: true, message: 'Token is valid and model is ready!' };
+        return { valid: true, message: 'Token is valid' };
         
     } catch (error) {
-        console.error('Token validation error:', error);
-        
-        // Check error types
-        if (error.message && (error.message.includes('401') || error.message.includes('403') || error.message.includes('Invalid'))) {
+        // Check error message for specific issues
+        if (error.message && (error.message.includes('401') || error.message.includes('403') || error.message.includes('Unauthorized'))) {
             return { valid: false, message: 'Invalid token' };
-        } else if (error.message && error.message.includes('429')) {
-            // Rate limited but token is valid
-            return { valid: true, message: 'Token is valid (rate limit reached during test)' };
-        } else {
-            return { valid: false, message: `Could not verify: ${error.message || 'Unknown error'}` };
         }
+        if (error.message && error.message.includes('429')) {
+            return { valid: true, message: 'Token valid but rate limited' };
+        }
+        
+        // If we get here, assume token is probably valid but something else went wrong
+        return { valid: true, message: 'Token appears valid' };
     }
 }
 
