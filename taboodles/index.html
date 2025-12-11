@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<! DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -18,19 +18,19 @@
                     
                     <div id="player-a-content">
                         <div class="word-section">
-                            <div class="target-word-label">Target Word:</div>
+                            <div class="target-word-label">Target Word: </div>
                             <div id="target-word" class="target-word"></div>
                         </div>
                         
                         <div class="forbidden-section">
-                            <div class="forbidden-label">Forbidden Words:</div>
+                            <div class="forbidden-label">Forbidden Words: </div>
                             <div id="forbidden-words" class="forbidden-words"></div>
                         </div>
                         
                         <div class="token-section">
                             <label for="hf-token-input">Hugging Face API Token:</label>
                             <div class="token-input-group">
-                                <input type="password" id="hf-token-input" placeholder="Enter your Hugging Face token...">
+                                <input type="password" id="hf-token-input" placeholder="Enter your Hugging Face token... ">
                                 <button id="save-token-btn" class="token-btn">Save & Test Token</button>
                             </div>
                             <div class="token-help">
@@ -38,7 +38,7 @@
                             </div>
                             <div id="token-status" class="token-status"></div>
                             <div class="token-warning">
-                                ⚠️ Keep your token private. Never share it with others.
+                                ⚠️ Keep your token private.  Never share it with others.
                             </div>
                         </div>
                         
@@ -76,15 +76,18 @@
                         </div>
                         
                         <div id="player-b-game" style="display: none;">
-                            <div class="shared-image-display">
-                                <img id="shared-image" alt="Shared image">
+                            <div class="image-display">
+                                <img id="shared-image" alt="Shared image to guess">
                             </div>
                             
                             <div class="guess-section">
-                                <label for="guess-input">Guess the Target Word:</label>
+                                <label for="guess-input">What's the target word?</label>
                                 <input type="text" id="guess-input" placeholder="Enter your guess...">
-                                <div class="attempts-remaining">Attempts remaining: <span id="attempts-count">3</span></div>
                                 <button id="submit-guess-btn">Submit Guess</button>
+                            </div>
+                            
+                            <div class="attempts-section">
+                                Attempts remaining: <span id="attempts-count">3</span>
                             </div>
                             
                             <div id="guess-feedback" class="message"></div>
